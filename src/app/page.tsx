@@ -5,11 +5,12 @@ import { Navigation } from '@/components/layout/Navigation';
 import { FormBuilder } from '@/components/form-builder/FormBuilder';
 import { WorkflowDesigner } from '@/components/workflow-designer/WorkflowDesigner';
 import { WorkflowExecutionPage } from '@/components/workflow-execution/WorkflowExecutionPage';
+import { Dashboard } from '@/components/dashboard/Dashboard';
 
-type Page = 'forms' | 'workflows' | 'executions';
+type Page = 'dashboard' | 'forms' | 'workflows' | 'executions';
 
 export default function Home() {
-  const [currentPage, setCurrentPage] = useState<Page>('forms');
+  const [currentPage, setCurrentPage] = useState<Page>('dashboard');
 
   // Global zoom functionality
   useEffect(() => {
@@ -29,6 +30,8 @@ export default function Home() {
 
   const renderPage = () => {
     switch (currentPage) {
+      case 'dashboard':
+        return <Dashboard />;
       case 'forms':
         return <FormBuilder />;
       case 'workflows':
@@ -36,7 +39,7 @@ export default function Home() {
       case 'executions':
         return <WorkflowExecutionPage />;
       default:
-        return <FormBuilder />;
+        return <Dashboard />;
     }
   };
 

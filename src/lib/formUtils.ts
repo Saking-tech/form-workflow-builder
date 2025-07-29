@@ -105,6 +105,45 @@ export const fieldTypes: FieldType[] = [
     icon: '➖',
     category: 'layout',
     description: 'Visual separator'
+  },
+
+  // Business Elements
+  {
+    type: 'company-info',
+    label: 'Company Information',
+    icon: '🏢',
+    category: 'business',
+    description: 'Company details section'
+  },
+  {
+    type: 'contact-info',
+    label: 'Contact Information',
+    icon: '👤',
+    category: 'business',
+    description: 'Contact details section'
+  },
+  {
+    type: 'address',
+    label: 'Address',
+    icon: '📍',
+    category: 'business',
+    description: 'Address input fields'
+  },
+
+  // Legal Elements
+  {
+    type: 'terms',
+    label: 'Terms & Conditions',
+    icon: '⚖️',
+    category: 'legal',
+    description: 'Legal terms section'
+  },
+  {
+    type: 'agreement-type',
+    label: 'Agreement Type',
+    icon: '📋',
+    category: 'legal',
+    description: 'Agreement type selection'
   }
 ];
 
@@ -114,6 +153,9 @@ export const createFormElement = (type: FormElement['type']): FormElement => {
     type,
     label: '',
     required: false,
+    settings: {
+      width: 'full', // Default to full width
+    },
   };
 
   switch (type) {
@@ -121,125 +163,296 @@ export const createFormElement = (type: FormElement['type']): FormElement => {
       return {
         ...baseElement,
         placeholder: 'Enter text...',
-        validation: { minLength: 1, maxLength: 100 }
+        validation: { minLength: 1, maxLength: 100 },
+        settings: {
+          ...baseElement.settings,
+          width: 'half', // Default to half width for side-by-side
+        },
       };
-    
     case 'long-text':
       return {
         ...baseElement,
-        placeholder: 'Enter your message...',
-        settings: { multiline: true, rows: 4 },
-        validation: { minLength: 1, maxLength: 1000 }
+        placeholder: 'Enter detailed text...',
+        settings: {
+          ...baseElement.settings,
+          multiline: true,
+          rows: 4,
+          width: 'full',
+        },
       };
-    
     case 'number':
       return {
         ...baseElement,
         placeholder: 'Enter number...',
-        validation: { min: 0, max: 999999 }
+        validation: { min: 0 },
+        settings: {
+          ...baseElement.settings,
+          width: 'half',
+        },
       };
-    
     case 'email':
       return {
         ...baseElement,
         placeholder: 'Enter email address...',
-        validation: { pattern: '^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$' }
+        validation: { pattern: '^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$' },
+        settings: {
+          ...baseElement.settings,
+          width: 'half',
+        },
       };
-    
     case 'phone':
       return {
         ...baseElement,
         placeholder: 'Enter phone number...',
-        validation: { pattern: '^[+]?[0-9\\s\\-()]{10,}$' }
+        settings: {
+          ...baseElement.settings,
+          width: 'half',
+        },
       };
-    
     case 'date':
       return {
         ...baseElement,
-        placeholder: 'Select date...'
+        placeholder: 'Select date...',
+        settings: {
+          ...baseElement.settings,
+          width: 'half',
+        },
       };
-    
     case 'dropdown':
       return {
         ...baseElement,
+        placeholder: 'Select option...',
         options: [
           { label: 'Option 1', value: 'option1' },
           { label: 'Option 2', value: 'option2' },
-          { label: 'Option 3', value: 'option3' }
-        ]
+        ],
+        settings: {
+          ...baseElement.settings,
+          width: 'half',
+        },
       };
-    
     case 'checkbox':
       return {
         ...baseElement,
-        options: [
-          { label: 'Option 1', value: 'option1' },
-          { label: 'Option 2', value: 'option2' }
-        ]
+        defaultValue: false,
+        settings: {
+          ...baseElement.settings,
+          width: 'full',
+        },
       };
-    
     case 'radio':
       return {
         ...baseElement,
         options: [
           { label: 'Option 1', value: 'option1' },
-          { label: 'Option 2', value: 'option2' }
-        ]
+          { label: 'Option 2', value: 'option2' },
+        ],
+        settings: {
+          ...baseElement.settings,
+          width: 'full',
+        },
       };
-    
     case 'file-upload':
       return {
         ...baseElement,
-        settings: { accept: '.pdf,.doc,.docx,.jpg,.png', multiple: false }
+        placeholder: 'Choose file...',
+        settings: {
+          ...baseElement.settings,
+          accept: '*/*',
+          multiple: false,
+          width: 'full',
+        },
       };
-    
     case 'signature':
       return {
         ...baseElement,
-        settings: {}
+        placeholder: 'Click to sign...',
+        settings: {
+          ...baseElement.settings,
+          width: 'full',
+        },
       };
-    
     case 'heading':
       return {
         ...baseElement,
         label: 'Section Heading',
-        required: false
+        settings: {
+          ...baseElement.settings,
+          width: 'full',
+        },
       };
-    
     case 'paragraph':
       return {
         ...baseElement,
-        label: 'Paragraph Text',
-        placeholder: 'Enter paragraph content...',
-        required: false
+        placeholder: 'Enter paragraph text...',
+        settings: {
+          ...baseElement.settings,
+          width: 'full',
+        },
       };
-    
     case 'divider':
       return {
         ...baseElement,
-        label: 'Divider',
-        required: false
+        label: '',
+        settings: {
+          ...baseElement.settings,
+          width: 'full',
+        },
       };
-    
+    case 'company-info':
+      return {
+        ...baseElement,
+        label: 'Company Information',
+        settings: {
+          ...baseElement.settings,
+          width: 'full',
+          autoFill: true,
+        },
+      };
+    case 'contact-info':
+      return {
+        ...baseElement,
+        label: 'Contact Information',
+        settings: {
+          ...baseElement.settings,
+          width: 'full',
+          autoFill: true,
+        },
+      };
+    case 'address':
+      return {
+        ...baseElement,
+        label: 'Address',
+        settings: {
+          ...baseElement.settings,
+          width: 'full',
+          autoFill: true,
+        },
+      };
+    case 'terms':
+      return {
+        ...baseElement,
+        label: 'Terms & Conditions',
+        settings: {
+          ...baseElement.settings,
+          width: 'full',
+        },
+      };
+    case 'agreement-type':
+      return {
+        ...baseElement,
+        label: 'Agreement Type',
+        options: [
+          { label: 'Vendor Agreement', value: 'vendor' },
+          { label: 'NDA Agreement', value: 'nda' },
+          { label: 'Service Agreement', value: 'service' },
+          { label: 'Purchase Agreement', value: 'purchase' },
+        ],
+        settings: {
+          ...baseElement.settings,
+          width: 'full',
+        },
+      };
     default:
       return baseElement;
   }
 };
 
-export const createFormComponent = (type: FormComponent['type'] = 'section'): FormComponent => {
-  return {
+export const createFormComponent = (type: FormComponent['type']): FormComponent => {
+  const baseComponent: FormComponent = {
     id: `component_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     type,
-    title: 'New Section',
-    description: '',
+    title: '',
     elements: [],
-    settings: {
-      columns: type === 'grid' ? 2 : undefined,
-      collapsible: type === 'accordion' ? true : undefined,
-      defaultOpen: type === 'accordion' ? true : undefined,
-      layout: 'vertical'
-    }
   };
+
+  switch (type) {
+    case 'section':
+      return {
+        ...baseComponent,
+        title: 'New Section',
+        description: 'Add a description for this section',
+        settings: {
+          layout: 'vertical',
+          fieldSpacing: 'normal',
+          responsive: true,
+        },
+      };
+    case 'part':
+      return {
+        ...baseComponent,
+        title: 'Part 1',
+        description: 'First part of the form',
+        settings: {
+          layout: 'vertical',
+          fieldSpacing: 'normal',
+          responsive: true,
+          isPart: true,
+          partNumber: 1,
+          autoSave: true,
+        },
+      };
+    case 'row':
+      return {
+        ...baseComponent,
+        title: 'Field Row',
+        description: 'Add fields side by side',
+        settings: {
+          layout: 'side-by-side',
+          fieldSpacing: 'compact',
+          responsive: true,
+        },
+      };
+    case 'group':
+      return {
+        ...baseComponent,
+        title: 'Field Group',
+        description: 'Group related fields together',
+        settings: {
+          layout: 'vertical',
+          fieldSpacing: 'normal',
+          responsive: true,
+        },
+      };
+    case 'grid':
+      return {
+        ...baseComponent,
+        title: 'Grid Layout',
+        description: 'Arrange fields in a grid',
+        settings: {
+          columns: 2,
+          layout: 'horizontal',
+          fieldSpacing: 'normal',
+          responsive: true,
+        },
+      };
+    case 'tabs':
+      return {
+        ...baseComponent,
+        title: 'Tabbed Section',
+        description: 'Organize content in tabs',
+        settings: {
+          layout: 'vertical',
+          fieldSpacing: 'normal',
+          responsive: true,
+        },
+      };
+    case 'accordion':
+      return {
+        ...baseComponent,
+        title: 'Collapsible Section',
+        description: 'Expandable content area',
+        settings: {
+          layout: 'vertical',
+          collapsible: true,
+          defaultOpen: true,
+          fieldSpacing: 'normal',
+          responsive: true,
+        },
+      };
+    default:
+      return baseComponent;
+  }
 };
 
 export const createNewForm = (name: string, description?: string): Form => {
@@ -255,7 +468,46 @@ export const createNewForm = (name: string, description?: string): Form => {
       layout: 'single-column',
       showProgress: true,
       allowSave: true,
-      allowPrint: true
+      allowPrint: true,
+      multiPart: false,
+    },
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+};
+
+export const createMultiPartForm = (name: string, description?: string, parts: number = 2): Form => {
+  const components = [];
+  for (let i = 1; i <= parts; i++) {
+    const part = createFormComponent('part');
+    part.title = `Part ${i}`;
+    part.description = `Part ${i} of the form`;
+    part.settings = {
+      ...part.settings,
+      isPart: true,
+      partNumber: i,
+      autoSave: true,
+    };
+    components.push(part);
+  }
+
+  return {
+    id: `form_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    name,
+    description: description || '',
+    components,
+    settings: {
+      theme: 'default',
+      layout: 'single-column',
+      showProgress: true,
+      allowSave: true,
+      allowPrint: true,
+      multiPart: true,
+      parts: {
+        total: parts,
+        current: 1,
+        titles: Array.from({ length: parts }, (_, i) => `Part ${i + 1}`),
+      },
     },
     createdAt: new Date(),
     updatedAt: new Date(),

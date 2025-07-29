@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,7 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { FieldPalette } from './FieldPalette';
 import { FormCanvas } from './FormCanvas';
 import { useFormStore } from '@/stores/formStore';
-import { createNewForm } from '@/lib/formUtils';
+import { createNewForm, createMultiPartForm } from '@/lib/formUtils';
 import { 
   Plus, 
   FileText, 
@@ -28,30 +28,45 @@ import {
   Calendar,
   Clock,
   Users,
-  BarChart3
+  BarChart3,
+  Building2,
+  Scale,
+  Briefcase,
+  Layers
 } from 'lucide-react';
 
 export function FormBuilder() {
-  const { 
-    forms, 
-    currentForm, 
-    addForm, 
-    setCurrentForm, 
-    deleteForm, 
-    duplicateForm 
-  } = useFormStore();
-
+  const { forms, currentForm, addForm, setCurrentForm, deleteForm, duplicateForm } = useFormStore();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newFormName, setNewFormName] = useState('');
   const [newFormDescription, setNewFormDescription] = useState('');
+  const [formType, setFormType] = useState<'single' | 'multi-part'>('single');
+  const [partsCount, setPartsCount] = useState(2);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Handle store hydration
+  useEffect(() => {
+    // Small delay to ensure store is hydrated
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleCreateForm = () => {
     if (newFormName.trim()) {
-      const newForm = createNewForm(newFormName.trim(), newFormDescription.trim());
+      let newForm;
+      if (formType === 'multi-part') {
+        newForm = createMultiPartForm(newFormName.trim(), newFormDescription.trim(), partsCount);
+      } else {
+        newForm = createNewForm(newFormName.trim(), newFormDescription.trim());
+      }
       addForm(newForm);
       setCurrentForm(newForm);
       setNewFormName('');
       setNewFormDescription('');
+      setFormType('single');
+      setPartsCount(2);
       setShowCreateDialog(false);
     }
   };
@@ -62,12 +77,7 @@ export function FormBuilder() {
 
   const handleDeleteForm = (formId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (confirm('Are you sure you want to delete this form?')) {
-      deleteForm(formId);
-      if (currentForm?.id === formId) {
-        setCurrentForm(null);
-      }
-    }
+    deleteForm(formId);
   };
 
   const handleDuplicateForm = (formId: string, e: React.MouseEvent) => {
@@ -75,7 +85,11 @@ export function FormBuilder() {
     duplicateForm(formId);
   };
 
-  const formatDate = (date: Date) => {
+  const formatDate = (date: Date | undefined) => {
+    if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
+      return 'Unknown';
+    }
+    
     return new Intl.DateTimeFormat('en-US', {
       month: 'short',
       day: 'numeric',
@@ -84,6 +98,32 @@ export function FormBuilder() {
       minute: '2-digit'
     }).format(date);
   };
+
+  const getFormTypeIcon = (form: any) => {
+    if (form.settings?.multiPart) {
+      return <Layers className="w-4 h-4 text-purple-600" />;
+    }
+    return <FileText className="w-4 h-4 text-blue-600" />;
+  };
+
+  const getFormTypeLabel = (form: any) => {
+    if (form.settings?.multiPart) {
+      return `${form.settings.parts?.total || 0} Parts`;
+    }
+    return 'Single Form';
+  };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading forms...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex">
@@ -97,7 +137,7 @@ export function FormBuilder() {
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Forms</h2>
-              <p className="text-sm text-gray-600">{forms.length} forms created</p>
+              <p className="text-sm text-gray-600">{forms?.length || 0} forms created</p>
             </div>
           </div>
           
@@ -142,6 +182,72 @@ export function FormBuilder() {
                     className="mt-1"
                   />
                 </div>
+                
+                {/* Form Type Selection */}
+                <div>
+                  <Label className="text-sm font-medium">Form Type</Label>
+                  <div className="mt-2 space-y-2">
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="formType"
+                        value="single"
+                        checked={formType === 'single'}
+                        onChange={(e) => setFormType(e.target.value as 'single' | 'multi-part')}
+                        className="text-blue-600"
+                      />
+                      <div className="flex items-center space-x-2">
+                        <FileText className="w-4 h-4 text-blue-600" />
+                        <span className="text-sm">Single Form</span>
+                      </div>
+                    </label>
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="formType"
+                        value="multi-part"
+                        checked={formType === 'multi-part'}
+                        onChange={(e) => setFormType(e.target.value as 'single' | 'multi-part')}
+                        className="text-blue-600"
+                      />
+                      <div className="flex items-center space-x-2">
+                        <Layers className="w-4 h-4 text-purple-600" />
+                        <span className="text-sm">Multi-Part Form</span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Parts Count for Multi-Part Forms */}
+                {formType === 'multi-part' && (
+                  <div>
+                    <Label htmlFor="parts-count" className="text-sm font-medium">Number of Parts</Label>
+                    <div className="mt-2 flex items-center space-x-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPartsCount(Math.max(2, partsCount - 1))}
+                        disabled={partsCount <= 2}
+                        className=""
+                      >
+                        -
+                      </Button>
+                      <span className="text-sm font-medium min-w-[2rem] text-center">{partsCount}</span>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPartsCount(partsCount + 1)}
+                        disabled={partsCount >= 10}
+                        className=""
+                      >
+                        +
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex justify-end space-x-2 pt-4">
                   <Button
                     variant="outline"
@@ -168,7 +274,7 @@ export function FormBuilder() {
 
         {/* Form List */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
-          {forms.length === 0 ? (
+          {!forms || forms.length === 0 ? (
             <div className="text-center py-8">
               <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
               <h3 className="text-sm font-medium text-gray-900 mb-1">No Forms Yet</h3>
@@ -187,23 +293,31 @@ export function FormBuilder() {
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-gray-900 truncate">{form.name}</h3>
+                    <div className="flex items-center space-x-2 mb-2">
+                      {getFormTypeIcon(form)}
+                      <h3 className="font-medium text-gray-900 truncate">{form.name}</h3>
+                    </div>
                     {form.description && (
-                      <p className="text-sm text-gray-500 truncate mt-1">{form.description}</p>
+                      <p className="text-sm text-gray-500 truncate mb-2">{form.description}</p>
                     )}
-                    <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
+                    <div className="flex items-center space-x-4 mb-2 text-xs text-gray-500">
                       <div className="flex items-center space-x-1">
                         <BarChart3 className="w-3 h-3" />
-                        <span>{form.components.length} components</span>
+                        <span>{form.components?.length || 0} components</span>
                       </div>
                       <div className="flex items-center space-x-1">
                         <Users className="w-3 h-3" />
-                        <span>{form.components.reduce((total, comp) => total + comp.elements.length, 0)} elements</span>
+                        <span>{form.components?.reduce((total, comp) => total + (comp.elements?.length || 0), 0) || 0} elements</span>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2 mt-2 text-xs text-gray-400">
+                    <div className="flex items-center space-x-2 text-xs text-gray-400">
                       <Clock className="w-3 h-3" />
                       <span>Updated {formatDate(form.updatedAt)}</span>
+                    </div>
+                    <div className="mt-2">
+                      <Badge variant="outline" className="text-xs">
+                        {getFormTypeLabel(form)}
+                      </Badge>
                     </div>
                   </div>
                   

@@ -90,11 +90,11 @@ export const useFormStore = create<FormStore>()(
         set((state) => ({
           forms: state.forms.map((form) =>
             form.id === formId
-              ? { ...form, components: [...form.components, component], updatedAt: new Date() }
+              ? { ...form, components: [...(form.components || []), component], updatedAt: new Date() }
               : form
           ),
           currentForm: state.currentForm?.id === formId
-            ? { ...state.currentForm, components: [...state.currentForm.components, component], updatedAt: new Date() }
+            ? { ...state.currentForm, components: [...(state.currentForm.components || []), component], updatedAt: new Date() }
             : state.currentForm,
         }));
       },
@@ -105,7 +105,7 @@ export const useFormStore = create<FormStore>()(
             form.id === formId
               ? {
                   ...form,
-                  components: form.components.map((component) =>
+                  components: (form.components || []).map((component) =>
                     component.id === componentId ? { ...component, ...updates } : component
                   ),
                   updatedAt: new Date()
@@ -115,7 +115,7 @@ export const useFormStore = create<FormStore>()(
           currentForm: state.currentForm?.id === formId
             ? {
                 ...state.currentForm,
-                components: state.currentForm.components.map((component) =>
+                components: (state.currentForm.components || []).map((component) =>
                   component.id === componentId ? { ...component, ...updates } : component
                 ),
                 updatedAt: new Date()
@@ -130,7 +130,7 @@ export const useFormStore = create<FormStore>()(
             form.id === formId
               ? {
                   ...form,
-                  components: form.components.filter((component) => component.id !== componentId),
+                  components: (form.components || []).filter((component) => component.id !== componentId),
                   updatedAt: new Date()
                 }
               : form
@@ -138,7 +138,7 @@ export const useFormStore = create<FormStore>()(
           currentForm: state.currentForm?.id === formId
             ? {
                 ...state.currentForm,
-                components: state.currentForm.components.filter((component) => component.id !== componentId),
+                components: (state.currentForm.components || []).filter((component) => component.id !== componentId),
                 updatedAt: new Date()
               }
             : state.currentForm,
@@ -152,7 +152,7 @@ export const useFormStore = create<FormStore>()(
               ? {
                   ...form,
                   components: (() => {
-                    const components = [...form.components];
+                    const components = [...(form.components || [])];
                     const [removed] = components.splice(oldIndex, 1);
                     components.splice(newIndex, 0, removed);
                     return components;
@@ -165,7 +165,7 @@ export const useFormStore = create<FormStore>()(
             ? {
                 ...state.currentForm,
                 components: (() => {
-                  const components = [...state.currentForm.components];
+                  const components = [...(state.currentForm.components || [])];
                   const [removed] = components.splice(oldIndex, 1);
                   components.splice(newIndex, 0, removed);
                   return components;
@@ -182,9 +182,9 @@ export const useFormStore = create<FormStore>()(
             form.id === formId
               ? {
                   ...form,
-                  components: form.components.map((component) =>
+                  components: (form.components || []).map((component) =>
                     component.id === componentId
-                      ? { ...component, elements: [...component.elements, element] }
+                      ? { ...component, elements: [...(component.elements || []), element] }
                       : component
                   ),
                   updatedAt: new Date()
@@ -194,9 +194,9 @@ export const useFormStore = create<FormStore>()(
           currentForm: state.currentForm?.id === formId
             ? {
                 ...state.currentForm,
-                components: state.currentForm.components.map((component) =>
+                components: (state.currentForm.components || []).map((component) =>
                   component.id === componentId
-                    ? { ...component, elements: [...component.elements, element] }
+                    ? { ...component, elements: [...(component.elements || []), element] }
                     : component
                 ),
                 updatedAt: new Date()
@@ -211,11 +211,11 @@ export const useFormStore = create<FormStore>()(
             form.id === formId
               ? {
                   ...form,
-                  components: form.components.map((component) =>
+                  components: (form.components || []).map((component) =>
                     component.id === componentId
                       ? {
                           ...component,
-                          elements: component.elements.map((element) =>
+                          elements: (component.elements || []).map((element) =>
                             element.id === elementId ? { ...element, ...updates } : element
                           )
                         }
@@ -228,11 +228,11 @@ export const useFormStore = create<FormStore>()(
           currentForm: state.currentForm?.id === formId
             ? {
                 ...state.currentForm,
-                components: state.currentForm.components.map((component) =>
+                components: (state.currentForm.components || []).map((component) =>
                   component.id === componentId
                     ? {
                         ...component,
-                        elements: component.elements.map((element) =>
+                        elements: (component.elements || []).map((element) =>
                           element.id === elementId ? { ...element, ...updates } : element
                         )
                       }
@@ -250,11 +250,11 @@ export const useFormStore = create<FormStore>()(
             form.id === formId
               ? {
                   ...form,
-                  components: form.components.map((component) =>
+                  components: (form.components || []).map((component) =>
                     component.id === componentId
                       ? {
                           ...component,
-                          elements: component.elements.filter((element) => element.id !== elementId)
+                          elements: (component.elements || []).filter((element) => element.id !== elementId)
                         }
                       : component
                   ),
@@ -265,11 +265,11 @@ export const useFormStore = create<FormStore>()(
           currentForm: state.currentForm?.id === formId
             ? {
                 ...state.currentForm,
-                components: state.currentForm.components.map((component) =>
+                components: (state.currentForm.components || []).map((component) =>
                   component.id === componentId
                     ? {
                         ...component,
-                        elements: component.elements.filter((element) => element.id !== elementId)
+                        elements: (component.elements || []).filter((element) => element.id !== elementId)
                       }
                     : component
                 ),
@@ -285,12 +285,12 @@ export const useFormStore = create<FormStore>()(
             form.id === formId
               ? {
                   ...form,
-                  components: form.components.map((component) =>
+                  components: (form.components || []).map((component) =>
                     component.id === componentId
                       ? {
                           ...component,
                           elements: (() => {
-                            const elements = [...component.elements];
+                            const elements = [...(component.elements || [])];
                             const [removed] = elements.splice(oldIndex, 1);
                             elements.splice(newIndex, 0, removed);
                             return elements;
@@ -305,12 +305,12 @@ export const useFormStore = create<FormStore>()(
           currentForm: state.currentForm?.id === formId
             ? {
                 ...state.currentForm,
-                components: state.currentForm.components.map((component) =>
+                components: (state.currentForm.components || []).map((component) =>
                   component.id === componentId
                     ? {
                         ...component,
                         elements: (() => {
-                          const elements = [...component.elements];
+                          const elements = [...(component.elements || [])];
                           const [removed] = elements.splice(oldIndex, 1);
                           elements.splice(newIndex, 0, removed);
                           return elements;
@@ -330,12 +330,12 @@ export const useFormStore = create<FormStore>()(
       
       getComponentById: (formId, componentId) => {
         const form = get().getFormById(formId);
-        return form?.components.find(component => component.id === componentId);
+        return form?.components?.find(component => component.id === componentId);
       },
       
       getElementById: (formId, componentId, elementId) => {
         const component = get().getComponentById(formId, componentId);
-        return component?.elements.find(element => element.id === elementId);
+        return component?.elements?.find(element => element.id === elementId);
       },
     }),
     {
