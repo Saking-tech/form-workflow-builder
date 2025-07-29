@@ -217,6 +217,8 @@ export function DynamicFormRenderer({
           <Button
             type="button"
             variant="outline"
+            size="default"
+            className=""
             onClick={() => reset()}
             disabled={isSubmitting}
           >
@@ -225,6 +227,8 @@ export function DynamicFormRenderer({
           
           <Button
             type="submit"
+            variant="default"
+            size="default"
             disabled={isSubmitting || !isValid}
             className="min-w-[120px]"
           >

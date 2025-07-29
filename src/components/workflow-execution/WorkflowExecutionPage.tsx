@@ -19,8 +19,10 @@ export function WorkflowExecutionPage() {
         return { label: 'Completed', color: 'bg-green-100 text-green-800' };
       case 'in-progress':
         return { label: 'In Progress', color: 'bg-blue-100 text-blue-800' };
-      case 'paused':
-        return { label: 'Paused', color: 'bg-yellow-100 text-yellow-800' };
+      case 'idle':
+        return { label: 'Idle', color: 'bg-gray-100 text-gray-800' };
+      case 'error':
+        return { label: 'Error', color: 'bg-red-100 text-red-800' };
       default:
         return { label: 'Unknown', color: 'bg-gray-100 text-gray-800' };
     }
@@ -63,7 +65,7 @@ export function WorkflowExecutionPage() {
         <div className="h-full flex items-center justify-center">
           <div className="text-center">
             <p className="text-gray-500">Workflow not found</p>
-            <Button onClick={handleBackToList} className="mt-4">
+            <Button variant="default" size="default" className="mt-4" onClick={handleBackToList}>
               Back to Workflows
             </Button>
           </div>
@@ -76,6 +78,7 @@ export function WorkflowExecutionPage() {
         <div className="bg-white border-b border-gray-200 px-6 py-4">
           <Button
             variant="ghost"
+            size="default"
             onClick={handleBackToList}
             className="mb-2"
           >
@@ -227,6 +230,8 @@ export function WorkflowExecutionPage() {
                       {/* Action Buttons */}
                       <div className="flex space-x-2">
                         <Button
+                          variant="default"
+                          size="default"
                           onClick={() => handleWorkflowSelect(workflow)}
                           className="flex-1"
                           disabled={workflow.nodes.length === 0}
@@ -238,6 +243,8 @@ export function WorkflowExecutionPage() {
                         {latestExecution && latestExecution.status === 'in-progress' && (
                           <Button
                             variant="outline"
+                            size="default"
+                            className=""
                             onClick={() => {
                               setCurrentExecution(latestExecution);
                               setSelectedWorkflow(workflow);
@@ -294,7 +301,9 @@ export function WorkflowExecutionPage() {
                               
                               {execution.status === 'in-progress' && workflow && (
                                 <Button
+                                  variant="default"
                                   size="sm"
+                                  className=""
                                   onClick={() => {
                                     setCurrentExecution(execution);
                                     setSelectedWorkflow(workflow);
