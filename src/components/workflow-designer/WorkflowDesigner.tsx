@@ -620,6 +620,11 @@ The workflow is now active and ready for execution!`);
               <span className="hidden sm:inline">{connectionStats.total} Connections</span>
               <span className="sm:hidden">{connectionStats.total}</span>
             </Badge>
+            <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-xs">
+              <Maximize2 className="w-3 h-3 mr-1" />
+              <span className="hidden sm:inline">Zoom: 100%</span>
+              <span className="sm:hidden">100%</span>
+            </Badge>
           </div>
         </div>
         
@@ -857,7 +862,7 @@ The workflow is now active and ready for execution!`);
             connectionMode={ConnectionMode.Loose}
             fitView
             minZoom={0.1}
-            maxZoom={1.5}
+            maxZoom={2.5}
             defaultEdgeOptions={{
               type: 'smoothstep',
               animated: true,
@@ -875,15 +880,35 @@ The workflow is now active and ready for execution!`);
             panOnDrag={true}
             zoomOnScroll={true}
             zoomOnPinch={true}
+            zoomOnDoubleClick={false}
             preventScrolling={false}
             attributionPosition="bottom-left"
+            fitViewOptions={{
+              padding: 0.1,
+              includeHiddenNodes: false,
+              minZoom: 0.1,
+              maxZoom: 2.5,
+            }}
           >
             <Background />
-            <Controls className="!bottom-4 !right-4" />
+            <Controls 
+              className="!bottom-4 !right-4 !bg-white !border !border-gray-200 !rounded-lg !shadow-lg"
+              showZoom={true}
+              showFitView={true}
+              showInteractive={true}
+              fitViewOptions={{
+                padding: 0.1,
+                includeHiddenNodes: false,
+                minZoom: 0.1,
+                maxZoom: 2.5,
+              }}
+            />
             <MiniMap
               nodeColor="#3b82f6"
               maskColor="rgba(0, 0, 0, 0.1)"
               className="bg-white border border-gray-300 rounded-lg !bottom-4 !left-4 !w-32 !h-24"
+              zoomable={true}
+              pannable={true}
             />
             
             {/* Connection Instructions Panel - Hidden on mobile */}
@@ -905,6 +930,10 @@ The workflow is now active and ready for execution!`);
                   <div className="flex items-center space-x-2">
                     <ArrowRight className="w-3 h-3 text-gray-500" />
                     <span>Drag from any handle to any other handle</span>
+                  </div>
+                  <div className="flex items-center space-x-2 pt-2 border-t border-gray-100">
+                    <Maximize2 className="w-3 h-3 text-gray-500" />
+                    <span>Ctrl/Cmd + Scroll to zoom • Use controls for precise zoom</span>
                   </div>
                 </div>
               </div>

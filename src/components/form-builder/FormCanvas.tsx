@@ -51,6 +51,7 @@ export function FormCanvas({ formId }: FormCanvasProps) {
   const [isAnimating, setIsAnimating] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showQuickActions, setShowQuickActions] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(1);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const addMenuRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -61,6 +62,27 @@ export function FormCanvas({ formId }: FormCanvasProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: 'form-canvas',
   });
+
+  // Zoom functions
+  const handleZoomIn = () => {
+    setZoomLevel(prev => Math.min(prev + 0.1, 2));
+  };
+
+  const handleZoomOut = () => {
+    setZoomLevel(prev => Math.max(prev - 0.1, 0.5));
+  };
+
+  const handleZoomReset = () => {
+    setZoomLevel(1);
+  };
+
+  const handleWheel = (event: React.WheelEvent) => {
+    if (event.ctrlKey || event.metaKey) {
+      event.preventDefault();
+      const delta = event.deltaY > 0 ? -0.1 : 0.1;
+      setZoomLevel(prev => Math.max(0.5, Math.min(2, prev + delta)));
+    }
+  };
 
   useEffect(() => {
     setShowScrollButtons(fields.length > 8);
@@ -242,6 +264,42 @@ export function FormCanvas({ formId }: FormCanvasProps) {
               {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
             </Button>
 
+            {/* Zoom Controls */}
+            <div className="flex items-center space-x-1 bg-gray-100 rounded-lg p-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleZoomOut}
+                disabled={zoomLevel <= 0.5}
+                className="h-6 w-6 p-0"
+                title="Zoom out"
+              >
+                <Minimize2 className="w-3 h-3" />
+              </Button>
+              <span className="text-xs text-gray-600 px-2 min-w-[40px] text-center">
+                {Math.round(zoomLevel * 100)}%
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleZoomIn}
+                disabled={zoomLevel >= 2}
+                className="h-6 w-6 p-0"
+                title="Zoom in"
+              >
+                <Maximize2 className="w-3 h-3" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleZoomReset}
+                className="h-6 w-6 p-0"
+                title="Reset zoom"
+              >
+                <RotateCcw className="w-3 h-3" />
+              </Button>
+            </div>
+
             {/* Form Settings */}
             <Button
               variant="outline"
@@ -336,6 +394,12 @@ export function FormCanvas({ formId }: FormCanvasProps) {
               }
             }}
             onClick={handleCanvasClick}
+            onWheel={handleWheel}
+            style={{
+              transform: `scale(${zoomLevel})`,
+              transformOrigin: 'top left',
+              transition: 'transform 0.1s ease-out'
+            }}
             className={`
               h-full bg-white rounded-lg border-2 border-dashed transition-all duration-300 shadow-sm relative
               ${isOver 
