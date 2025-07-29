@@ -16,7 +16,14 @@ import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { FieldPalette } from './FieldPalette';
@@ -335,11 +342,14 @@ export function FormBuilder() {
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-md mx-4">
-                  <DialogHeader className="">
+                  <DialogHeader className="space-y-2">
                     <DialogTitle className="flex items-center space-x-2 text-lg font-semibold">
                       <Rocket className="w-5 h-5 text-blue-600" />
                       <span>Create New Form</span>
                     </DialogTitle>
+                    <DialogDescription className="text-gray-600">
+                      Create a new form with a unique name and description.
+                    </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-6 pt-4">
                     <div className="space-y-2">
