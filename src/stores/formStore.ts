@@ -1,26 +1,35 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Form, FormField } from '@/types';
+import { Form, FormComponent, FormElement } from '@/types';
+import { createNewForm, createFormComponent, createFormElement } from '@/lib/formUtils';
 
 interface FormStore {
   forms: Form[];
   currentForm: Form | null;
   
-  // Actions
+  // Form CRUD operations
   addForm: (form: Form) => void;
   updateForm: (id: string, updates: Partial<Form>) => void;
   deleteForm: (id: string) => void;
+  duplicateForm: (id: string) => void;
   setCurrentForm: (form: Form | null) => void;
   
-  // Form field operations
-  addFieldToForm: (formId: string, field: FormField) => void;
-  updateFieldInForm: (formId: string, fieldId: string, updates: Partial<FormField>) => void;
-  removeFieldFromForm: (formId: string, fieldId: string) => void;
-  reorderFormFields: (formId: string, fromIndex: number, toIndex: number) => void;
+  // Component operations
+  addComponentToForm: (formId: string, component: FormComponent) => void;
+  updateComponentInForm: (formId: string, componentId: string, updates: Partial<FormComponent>) => void;
+  removeComponentFromForm: (formId: string, componentId: string) => void;
+  reorderComponents: (formId: string, oldIndex: number, newIndex: number) => void;
+  
+  // Element operations
+  addElementToComponent: (formId: string, componentId: string, element: FormElement) => void;
+  updateElementInComponent: (formId: string, componentId: string, elementId: string, updates: Partial<FormElement>) => void;
+  removeElementFromComponent: (formId: string, componentId: string, elementId: string) => void;
+  reorderElements: (formId: string, componentId: string, oldIndex: number, newIndex: number) => void;
   
   // Utility functions
   getFormById: (id: string) => Form | undefined;
-  duplicateForm: (id: string) => void;
+  getComponentById: (formId: string, componentId: string) => FormComponent | undefined;
+  getElementById: (formId: string, componentId: string, elementId: string) => FormElement | undefined;
 }
 
 export const useFormStore = create<FormStore>()(
@@ -39,8 +48,8 @@ export const useFormStore = create<FormStore>()(
           forms: state.forms.map((form) =>
             form.id === id ? { ...form, ...updates, updatedAt: new Date() } : form
           ),
-          currentForm: state.currentForm?.id === id 
-            ? { ...state.currentForm, ...updates, updatedAt: new Date() } 
+          currentForm: state.currentForm?.id === id
+            ? { ...state.currentForm, ...updates, updatedAt: new Date() }
             : state.currentForm,
         })),
       
@@ -50,102 +59,283 @@ export const useFormStore = create<FormStore>()(
           currentForm: state.currentForm?.id === id ? null : state.currentForm,
         })),
       
+      duplicateForm: (id) => {
+        const form = get().forms.find(f => f.id === id);
+        if (form) {
+          const duplicatedForm: Form = {
+            ...form,
+            id: `form_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            name: `${form.name} (Copy)`,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            components: form.components.map(component => ({
+              ...component,
+              id: `component_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+              elements: component.elements.map(element => ({
+                ...element,
+                id: `element_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+              }))
+            }))
+          };
+          get().addForm(duplicatedForm);
+        }
+      },
+      
       setCurrentForm: (form) =>
         set(() => ({
           currentForm: form,
         })),
       
-      addFieldToForm: (formId, field) =>
+      addComponentToForm: (formId, component) => {
         set((state) => ({
           forms: state.forms.map((form) =>
             form.id === formId
-              ? { ...form, fields: [...form.fields, field], updatedAt: new Date() }
+              ? { ...form, components: [...form.components, component], updatedAt: new Date() }
               : form
           ),
           currentForm: state.currentForm?.id === formId
-            ? { ...state.currentForm, fields: [...state.currentForm.fields, field], updatedAt: new Date() }
+            ? { ...state.currentForm, components: [...state.currentForm.components, component], updatedAt: new Date() }
             : state.currentForm,
-        })),
+        }));
+      },
       
-      updateFieldInForm: (formId, fieldId, updates) =>
+      updateComponentInForm: (formId, componentId, updates) => {
         set((state) => ({
           forms: state.forms.map((form) =>
             form.id === formId
               ? {
                   ...form,
-                  fields: form.fields.map((field) =>
-                    field.id === fieldId ? { ...field, ...updates } : field
+                  components: form.components.map((component) =>
+                    component.id === componentId ? { ...component, ...updates } : component
                   ),
-                  updatedAt: new Date(),
+                  updatedAt: new Date()
                 }
               : form
           ),
           currentForm: state.currentForm?.id === formId
             ? {
                 ...state.currentForm,
-                fields: state.currentForm.fields.map((field) =>
-                  field.id === fieldId ? { ...field, ...updates } : field
+                components: state.currentForm.components.map((component) =>
+                  component.id === componentId ? { ...component, ...updates } : component
                 ),
-                updatedAt: new Date(),
+                updatedAt: new Date()
               }
             : state.currentForm,
-        })),
+        }));
+      },
       
-      removeFieldFromForm: (formId, fieldId) =>
+      removeComponentFromForm: (formId, componentId) => {
         set((state) => ({
           forms: state.forms.map((form) =>
             form.id === formId
               ? {
                   ...form,
-                  fields: form.fields.filter((field) => field.id !== fieldId),
-                  updatedAt: new Date(),
+                  components: form.components.filter((component) => component.id !== componentId),
+                  updatedAt: new Date()
                 }
               : form
           ),
           currentForm: state.currentForm?.id === formId
             ? {
                 ...state.currentForm,
-                fields: state.currentForm.fields.filter((field) => field.id !== fieldId),
-                updatedAt: new Date(),
+                components: state.currentForm.components.filter((component) => component.id !== componentId),
+                updatedAt: new Date()
               }
             : state.currentForm,
-        })),
+        }));
+      },
       
-      reorderFormFields: (formId, fromIndex, toIndex) =>
-        set((state) => {
-          const updateFields = (fields: FormField[]) => {
-            const newFields = [...fields];
-            const [removed] = newFields.splice(fromIndex, 1);
-            newFields.splice(toIndex, 0, removed);
-            return newFields;
-          };
-          
-          return {
-            forms: state.forms.map((form) =>
-              form.id === formId
-                ? { ...form, fields: updateFields(form.fields), updatedAt: new Date() }
-                : form
-            ),
-            currentForm: state.currentForm?.id === formId
-              ? { ...state.currentForm, fields: updateFields(state.currentForm.fields), updatedAt: new Date() }
-              : state.currentForm,
-          };
-        }),
+      reorderComponents: (formId, oldIndex, newIndex) => {
+        set((state) => ({
+          forms: state.forms.map((form) =>
+            form.id === formId
+              ? {
+                  ...form,
+                  components: (() => {
+                    const components = [...form.components];
+                    const [removed] = components.splice(oldIndex, 1);
+                    components.splice(newIndex, 0, removed);
+                    return components;
+                  })(),
+                  updatedAt: new Date()
+                }
+              : form
+          ),
+          currentForm: state.currentForm?.id === formId
+            ? {
+                ...state.currentForm,
+                components: (() => {
+                  const components = [...state.currentForm.components];
+                  const [removed] = components.splice(oldIndex, 1);
+                  components.splice(newIndex, 0, removed);
+                  return components;
+                })(),
+                updatedAt: new Date()
+              }
+            : state.currentForm,
+        }));
+      },
       
-      getFormById: (id) => get().forms.find((form) => form.id === id),
+      addElementToComponent: (formId, componentId, element) => {
+        set((state) => ({
+          forms: state.forms.map((form) =>
+            form.id === formId
+              ? {
+                  ...form,
+                  components: form.components.map((component) =>
+                    component.id === componentId
+                      ? { ...component, elements: [...component.elements, element] }
+                      : component
+                  ),
+                  updatedAt: new Date()
+                }
+              : form
+          ),
+          currentForm: state.currentForm?.id === formId
+            ? {
+                ...state.currentForm,
+                components: state.currentForm.components.map((component) =>
+                  component.id === componentId
+                    ? { ...component, elements: [...component.elements, element] }
+                    : component
+                ),
+                updatedAt: new Date()
+              }
+            : state.currentForm,
+        }));
+      },
       
-      duplicateForm: (id) => {
-        const form = get().getFormById(id);
-        if (form) {
-          const duplicatedForm: Form = {
-            ...form,
-            id: `${form.id}_copy_${Date.now()}`,
-            name: `${form.name} (Copy)`,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          };
-          get().addForm(duplicatedForm);
-        }
+      updateElementInComponent: (formId, componentId, elementId, updates) => {
+        set((state) => ({
+          forms: state.forms.map((form) =>
+            form.id === formId
+              ? {
+                  ...form,
+                  components: form.components.map((component) =>
+                    component.id === componentId
+                      ? {
+                          ...component,
+                          elements: component.elements.map((element) =>
+                            element.id === elementId ? { ...element, ...updates } : element
+                          )
+                        }
+                      : component
+                  ),
+                  updatedAt: new Date()
+                }
+              : form
+          ),
+          currentForm: state.currentForm?.id === formId
+            ? {
+                ...state.currentForm,
+                components: state.currentForm.components.map((component) =>
+                  component.id === componentId
+                    ? {
+                        ...component,
+                        elements: component.elements.map((element) =>
+                          element.id === elementId ? { ...element, ...updates } : element
+                        )
+                      }
+                    : component
+                ),
+                updatedAt: new Date()
+              }
+            : state.currentForm,
+        }));
+      },
+      
+      removeElementFromComponent: (formId, componentId, elementId) => {
+        set((state) => ({
+          forms: state.forms.map((form) =>
+            form.id === formId
+              ? {
+                  ...form,
+                  components: form.components.map((component) =>
+                    component.id === componentId
+                      ? {
+                          ...component,
+                          elements: component.elements.filter((element) => element.id !== elementId)
+                        }
+                      : component
+                  ),
+                  updatedAt: new Date()
+                }
+              : form
+          ),
+          currentForm: state.currentForm?.id === formId
+            ? {
+                ...state.currentForm,
+                components: state.currentForm.components.map((component) =>
+                  component.id === componentId
+                    ? {
+                        ...component,
+                        elements: component.elements.filter((element) => element.id !== elementId)
+                      }
+                    : component
+                ),
+                updatedAt: new Date()
+              }
+            : state.currentForm,
+        }));
+      },
+      
+      reorderElements: (formId, componentId, oldIndex, newIndex) => {
+        set((state) => ({
+          forms: state.forms.map((form) =>
+            form.id === formId
+              ? {
+                  ...form,
+                  components: form.components.map((component) =>
+                    component.id === componentId
+                      ? {
+                          ...component,
+                          elements: (() => {
+                            const elements = [...component.elements];
+                            const [removed] = elements.splice(oldIndex, 1);
+                            elements.splice(newIndex, 0, removed);
+                            return elements;
+                          })()
+                        }
+                      : component
+                  ),
+                  updatedAt: new Date()
+                }
+              : form
+          ),
+          currentForm: state.currentForm?.id === formId
+            ? {
+                ...state.currentForm,
+                components: state.currentForm.components.map((component) =>
+                  component.id === componentId
+                    ? {
+                        ...component,
+                        elements: (() => {
+                          const elements = [...component.elements];
+                          const [removed] = elements.splice(oldIndex, 1);
+                          elements.splice(newIndex, 0, removed);
+                          return elements;
+                        })()
+                      }
+                    : component
+                ),
+                updatedAt: new Date()
+              }
+            : state.currentForm,
+        }));
+      },
+      
+      getFormById: (id) => {
+        return get().forms.find(form => form.id === id);
+      },
+      
+      getComponentById: (formId, componentId) => {
+        const form = get().getFormById(formId);
+        return form?.components.find(component => component.id === componentId);
+      },
+      
+      getElementById: (formId, componentId, elementId) => {
+        const component = get().getComponentById(formId, componentId);
+        return component?.elements.find(element => element.id === elementId);
       },
     }),
     {

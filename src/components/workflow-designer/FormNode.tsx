@@ -325,9 +325,9 @@ export function FormNode({ id, data, selected }: NodeProps<any>) {
           {/* Form Info */}
           <div className="space-y-1 sm:space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-500">Fields:</span>
+              <span className="text-xs text-gray-500">Elements:</span>
               <Badge variant="outline" className="text-xs">
-                {form?.fields.length || 0}
+                {form?.components.reduce((total, comp) => total + comp.elements.length, 0) || 0}
               </Badge>
             </div>
             

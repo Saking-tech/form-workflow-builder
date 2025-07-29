@@ -5,7 +5,7 @@ import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { FIELD_TYPES } from '@/lib/formUtils';
+import { fieldTypes } from '@/lib/formUtils';
 import { FieldType } from '@/types';
 import { Sparkles, Zap, GripVertical, MousePointer2, Hand, Palette, Layers, Info } from 'lucide-react';
 
@@ -136,7 +136,7 @@ export function FieldPalette() {
           <div className="flex items-center justify-between text-xs">
             <div className="flex items-center space-x-1 text-gray-600">
               <Layers className="w-3 h-3" />
-              <span>{FIELD_TYPES.length} Field Types</span>
+              <span>{fieldTypes.length} Field Types</span>
             </div>
             <Badge variant="outline" className="bg-white text-gray-600 border-gray-300 text-xs">
               v2.0
@@ -158,7 +158,7 @@ export function FieldPalette() {
           
           {/* Field Types List */}
           <div className="space-y-3">
-            {FIELD_TYPES.map((fieldType, index) => (
+            {fieldTypes.map((fieldType, index) => (
               <DraggableFieldType key={fieldType.type} fieldType={fieldType} index={index} />
             ))}
           </div>

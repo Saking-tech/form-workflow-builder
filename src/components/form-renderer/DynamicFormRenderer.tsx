@@ -2,13 +2,11 @@
 
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
-import { createFormValidationSchema } from '@/lib/formUtils';
-import { Form } from '@/types';
+import { Form, FormComponent, FormElement } from '@/types';
 import { Send, AlertCircle } from 'lucide-react';
 
 interface DynamicFormRendererProps {
@@ -19,35 +17,86 @@ interface DynamicFormRendererProps {
   className?: string;
 }
 
-interface FormFieldRendererProps {
-  field: any;
+interface FormElementRendererProps {
+  element: FormElement;
   register: any;
   error?: any;
 }
 
-function FormFieldRenderer({ field, register, error }: FormFieldRendererProps) {
-  const renderField = () => {
-    switch (field.type) {
-      case 'text':
+function FormElementRenderer({ element, register, error }: FormElementRendererProps) {
+  const renderElement = () => {
+    switch (element.type) {
+      case 'short-text':
         return (
           <Input
-            {...register(field.id)}
+            {...register(element.id)}
             type="text"
-            placeholder={field.placeholder}
+            placeholder={element.placeholder}
             className={error ? 'border-red-500 focus:ring-red-500' : ''}
           />
         );
       
-      case 'select':
+      case 'long-text':
+        return (
+          <textarea
+            {...register(element.id)}
+            placeholder={element.placeholder}
+            rows={element.settings?.rows || 4}
+            className={`w-full px-3 py-2 border rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical ${
+              error ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
+            }`}
+          />
+        );
+      
+      case 'number':
+        return (
+          <Input
+            {...register(element.id)}
+            type="number"
+            placeholder={element.placeholder}
+            className={error ? 'border-red-500 focus:ring-red-500' : ''}
+          />
+        );
+      
+      case 'email':
+        return (
+          <Input
+            {...register(element.id)}
+            type="email"
+            placeholder={element.placeholder}
+            className={error ? 'border-red-500 focus:ring-red-500' : ''}
+          />
+        );
+      
+      case 'phone':
+        return (
+          <Input
+            {...register(element.id)}
+            type="tel"
+            placeholder={element.placeholder}
+            className={error ? 'border-red-500 focus:ring-red-500' : ''}
+          />
+        );
+      
+      case 'date':
+        return (
+          <Input
+            {...register(element.id)}
+            type="date"
+            className={error ? 'border-red-500 focus:ring-red-500' : ''}
+          />
+        );
+      
+      case 'dropdown':
         return (
           <select
-            {...register(field.id)}
+            {...register(element.id)}
             className={`w-full px-3 py-2 border rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${
               error ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
             }`}
           >
             <option value="">Select an option...</option>
-            {field.options?.map((option: any, index: number) => (
+            {element.options?.map((option: any, index: number) => (
               <option key={index} value={option.value}>
                 {option.label}
               </option>
@@ -55,41 +104,92 @@ function FormFieldRenderer({ field, register, error }: FormFieldRendererProps) {
           </select>
         );
       
-      case 'date':
+      case 'checkbox':
+        return (
+          <div className="space-y-2">
+            {element.options?.map((option: any, index: number) => (
+              <label key={index} className="flex items-center space-x-2">
+                <input
+                  {...register(element.id)}
+                  type="checkbox"
+                  value={option.value}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-700">{option.label}</span>
+              </label>
+            ))}
+          </div>
+        );
+      
+      case 'radio':
+        return (
+          <div className="space-y-2">
+            {element.options?.map((option: any, index: number) => (
+              <label key={index} className="flex items-center space-x-2">
+                <input
+                  {...register(element.id)}
+                  type="radio"
+                  value={option.value}
+                  className="border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-700">{option.label}</span>
+              </label>
+            ))}
+          </div>
+        );
+      
+      case 'file-upload':
         return (
           <Input
-            {...register(field.id)}
-            type="date"
+            {...register(element.id)}
+            type="file"
+            accept={element.settings?.accept}
+            multiple={element.settings?.multiple}
             className={error ? 'border-red-500 focus:ring-red-500' : ''}
           />
         );
       
-      case 'file':
+      case 'heading':
         return (
-          <Input
-            {...register(field.id)}
-            type="file"
-            className={error ? 'border-red-500 focus:ring-red-500' : ''}
-          />
+          <h3 className="text-lg font-semibold text-gray-900 mt-6 mb-4">
+            {element.label}
+          </h3>
+        );
+      
+      case 'paragraph':
+        return (
+          <p className="text-gray-600 mb-4">
+            {element.placeholder}
+          </p>
+        );
+      
+      case 'divider':
+        return (
+          <hr className="my-6 border-gray-300" />
         );
       
       default:
         return (
           <div className="p-3 border border-gray-300 rounded-md bg-gray-50 text-gray-500">
-            Unsupported field type: {field.type}
+            Unsupported element type: {element.type}
           </div>
         );
     }
   };
 
+  // Don't render labels for layout elements
+  if (element.type === 'heading' || element.type === 'paragraph' || element.type === 'divider') {
+    return renderElement();
+  }
+
   return (
     <div className="space-y-2">
-      <Label htmlFor={field.id} className="text-sm font-medium text-gray-700">
-        {field.label}
-        {field.required && <span className="text-red-500 ml-1">*</span>}
+      <Label htmlFor={element.id} className="text-sm font-medium text-gray-700">
+        {element.label}
+        {element.required && <span className="text-red-500 ml-1">*</span>}
       </Label>
       
-      {renderField()}
+      {renderElement()}
       
       {error && (
         <div className="flex items-center space-x-1 text-red-600 text-sm">
@@ -98,10 +198,8 @@ function FormFieldRenderer({ field, register, error }: FormFieldRendererProps) {
         </div>
       )}
       
-      {field.validation?.pattern && !error && (
-        <p className="text-xs text-gray-500">
-          Pattern: {field.validation.pattern}
-        </p>
+      {element.helpText && (
+        <p className="text-xs text-gray-500">{element.helpText}</p>
       )}
     </div>
   );
@@ -114,159 +212,93 @@ export function DynamicFormRenderer({
   submitButtonText = 'Submit',
   className = '',
 }: DynamicFormRendererProps) {
-  const validationSchema = createFormValidationSchema(form);
-  
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting, isValid },
-    watch,
+    formState: { errors, isSubmitting },
     reset,
   } = useForm({
-    resolver: zodResolver(validationSchema),
     defaultValues: initialData,
-    mode: 'onChange',
   });
 
-  const watchedValues = watch();
-
   const handleFormSubmit = (data: Record<string, any>) => {
-    // Process file inputs
-    const processedData = { ...data };
-    
-    form.fields.forEach(field => {
-      if (field.type === 'file' && processedData[field.id]) {
-        const fileList = processedData[field.id] as FileList;
-        if (fileList && fileList.length > 0) {
-          processedData[field.id] = {
-            name: fileList[0].name,
-            size: fileList[0].size,
-            type: fileList[0].type,
-          };
-        }
-      }
-    });
-    
-    onSubmit(processedData);
+    onSubmit(data);
   };
 
+  // Flatten all elements from all components
+  const allElements = form.components.flatMap(component => component.elements);
+
   return (
-    <div className={`space-y-6 ${className}`}>
-      <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
-        {/* Form Fields */}
-        <div className="space-y-4">
-          {form.fields.map((field) => (
-            <FormFieldRenderer
-              key={field.id}
-              field={field}
-              register={register}
-              error={errors[field.id]}
-            />
-          ))}
-        </div>
-
-        {/* Form Summary */}
-        {form.fields.length > 0 && (
-          <Card className="p-4 bg-gray-50">
-            <h4 className="font-medium text-gray-700 mb-3">Form Summary</h4>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Total Fields:</span>
-                <span className="font-medium">{form.fields.length}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Required Fields:</span>
-                <span className="font-medium">
-                  {form.fields.filter(f => f.required).length}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Completed Fields:</span>
-                <span className="font-medium">
-                  {Object.values(watchedValues).filter(value => 
-                    value !== '' && value !== null && value !== undefined
-                  ).length}
-                </span>
-              </div>
-            </div>
-          </Card>
-        )}
-
-        {/* Validation Errors Summary */}
-        {Object.keys(errors).length > 0 && (
-          <Card className="p-4 border-red-200 bg-red-50">
-            <div className="flex items-center space-x-2 mb-3">
-              <AlertCircle className="w-5 h-5 text-red-600" />
-              <h4 className="font-medium text-red-800">Please fix the following errors:</h4>
-            </div>
-            <ul className="list-disc list-inside space-y-1 text-sm text-red-700">
-              {Object.entries(errors).map(([fieldId, error]) => {
-                const field = form.fields.find(f => f.id === fieldId);
-                return (
-                  <li key={fieldId}>
-                    <strong>{field?.label || fieldId}:</strong> {(error as any)?.message}
-                  </li>
-                );
-              })}
-            </ul>
-          </Card>
-        )}
-
-        {/* Submit Button */}
-        <div className="flex justify-end space-x-4">
-          <Button
-            type="button"
-            variant="outline"
-            size="default"
-            className=""
-            onClick={() => reset()}
-            disabled={isSubmitting}
-          >
-            Reset Form
-          </Button>
-          
-          <Button
-            type="submit"
-            variant="default"
-            size="default"
-            disabled={isSubmitting || !isValid}
-            className="min-w-[120px]"
-          >
-            {isSubmitting ? (
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                <span>Submitting...</span>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-2">
-                <Send className="w-4 h-4" />
-                <span>{submitButtonText}</span>
-              </div>
+    <div className={`max-w-2xl mx-auto ${className}`}>
+      <Card className="p-6">
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+          {/* Form Header */}
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">{form.name}</h2>
+            {form.description && (
+              <p className="text-gray-600">{form.description}</p>
             )}
-          </Button>
-        </div>
-      </form>
-
-      {/* Debug Information (only in development) */}
-      {process.env.NODE_ENV === 'development' && (
-        <Card className="p-4 bg-gray-50 border-dashed">
-          <h4 className="font-medium text-gray-700 mb-2">Debug Info</h4>
-          <div className="space-y-2 text-xs">
-            <div>
-              <strong>Form Values:</strong>
-              <pre className="mt-1 p-2 bg-white rounded border overflow-auto">
-                {JSON.stringify(watchedValues, null, 2)}
-              </pre>
-            </div>
-            <div>
-              <strong>Validation Errors:</strong>
-              <pre className="mt-1 p-2 bg-white rounded border overflow-auto">
-                {JSON.stringify(errors, null, 2)}
-              </pre>
-            </div>
           </div>
-        </Card>
-      )}
+
+          {/* Render Components */}
+          {form.components.map((component: FormComponent) => (
+            <div key={component.id} className="space-y-4">
+              {/* Component Header */}
+              <div className="border-b border-gray-200 pb-2">
+                <h3 className="text-lg font-semibold text-gray-900">{component.title}</h3>
+                {component.description && (
+                  <p className="text-sm text-gray-600 mt-1">{component.description}</p>
+                )}
+              </div>
+
+              {/* Render Elements */}
+              <div className="space-y-4">
+                {component.elements.map((element: FormElement) => (
+                  <FormElementRenderer
+                    key={element.id}
+                    element={element}
+                    register={register}
+                    error={errors[element.id]}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+
+          {/* Submit Button */}
+          <div className="flex justify-end space-x-4">
+            <Button
+              type="button"
+              variant="outline"
+              size="default"
+              onClick={() => reset()}
+              disabled={isSubmitting}
+              className=""
+            >
+              Reset
+            </Button>
+            <Button
+              type="submit"
+              variant="default"
+              size="default"
+              disabled={isSubmitting}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {isSubmitting ? (
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Submitting...</span>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <Send className="w-4 h-4" />
+                  <span>{submitButtonText}</span>
+                </div>
+              )}
+            </Button>
+          </div>
+        </form>
+      </Card>
     </div>
   );
 }

@@ -1,6 +1,6 @@
-export interface FormField {
+export interface FormElement {
   id: string;
-  type: 'text' | 'select' | 'date' | 'file';
+  type: 'short-text' | 'long-text' | 'date' | 'dropdown' | 'number' | 'email' | 'phone' | 'checkbox' | 'radio' | 'file-upload' | 'signature' | 'divider' | 'heading' | 'paragraph';
   label: string;
   placeholder?: string;
   required: boolean;
@@ -8,18 +8,49 @@ export interface FormField {
     minLength?: number;
     maxLength?: number;
     pattern?: string;
+    min?: number;
+    max?: number;
   };
   options?: Array<{
     label: string;
     value: string;
-  }>; // For select fields
+  }>; // For dropdown, radio fields
+  defaultValue?: string | number | boolean;
+  helpText?: string;
+  settings?: {
+    multiline?: boolean;
+    rows?: number;
+    accept?: string; // For file upload
+    multiple?: boolean; // For file upload
+  };
+}
+
+export interface FormComponent {
+  id: string;
+  type: 'section' | 'group' | 'grid' | 'tabs' | 'accordion';
+  title: string;
+  description?: string;
+  elements: FormElement[];
+  settings?: {
+    columns?: number; // For grid
+    collapsible?: boolean; // For accordion
+    defaultOpen?: boolean; // For accordion
+    layout?: 'horizontal' | 'vertical';
+  };
 }
 
 export interface Form {
   id: string;
   name: string;
   description?: string;
-  fields: FormField[];
+  components: FormComponent[];
+  settings?: {
+    theme?: 'default' | 'modern' | 'minimal' | 'corporate';
+    layout?: 'single-column' | 'two-column' | 'responsive';
+    showProgress?: boolean;
+    allowSave?: boolean;
+    allowPrint?: boolean;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -54,9 +85,11 @@ export interface Workflow {
 }
 
 export interface FieldType {
-  type: 'text' | 'select' | 'date' | 'file';
+  type: 'short-text' | 'long-text' | 'date' | 'dropdown' | 'number' | 'email' | 'phone' | 'checkbox' | 'radio' | 'file-upload' | 'signature' | 'divider' | 'heading' | 'paragraph';
   label: string;
   icon: string;
+  category: 'basic' | 'advanced' | 'layout' | 'media';
+  description: string;
 }
 
 export interface WorkflowExecution {

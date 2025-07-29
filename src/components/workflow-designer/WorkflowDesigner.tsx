@@ -700,7 +700,7 @@ The workflow is now active and ready for execution!`);
                         <FileText className="w-4 h-4 mr-2" />
                         {form.name}
                         <span className="ml-auto text-xs text-gray-500">
-                          {form.fields.length} field{form.fields.length !== 1 ? 's' : ''}
+                          {form.components.reduce((total, comp) => total + comp.elements.length, 0)} element{form.components.reduce((total, comp) => total + comp.elements.length, 0) !== 1 ? 's' : ''}
                         </span>
                       </Button>
                     ))}

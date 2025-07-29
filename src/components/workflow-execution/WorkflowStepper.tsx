@@ -187,7 +187,7 @@ export function WorkflowStepper({ workflow, execution: initialExecution, onCompl
                       <span className="font-medium">{form?.name || 'Unknown Form'}</span>
                     </div>
                     <span className="text-sm text-gray-500">
-                      {form?.fields.length || 0} field{(form?.fields.length || 0) !== 1 ? 's' : ''}
+                      {form?.components.reduce((total, comp) => total + comp.elements.length, 0) || 0} element{(form?.components.reduce((total, comp) => total + comp.elements.length, 0) || 0) !== 1 ? 's' : ''}
                     </span>
                   </div>
                 );

@@ -1,178 +1,271 @@
-import { z } from 'zod';
-import { FormField, Form, FieldType } from '@/types';
+import { Form, FormComponent, FormElement, FieldType } from '@/types';
 
-// Field type definitions for the palette
-export const FIELD_TYPES: FieldType[] = [
+export const fieldTypes: FieldType[] = [
+  // Basic Elements
   {
-    type: 'text',
-    label: 'Text Input',
+    type: 'short-text',
+    label: 'Short Text',
     icon: '📝',
+    category: 'basic',
+    description: 'Single line text input'
   },
   {
-    type: 'select',
-    label: 'Dropdown',
-    icon: '📋',
+    type: 'long-text',
+    label: 'Long Text',
+    icon: '📄',
+    category: 'basic',
+    description: 'Multi-line text area'
+  },
+  {
+    type: 'number',
+    label: 'Number',
+    icon: '🔢',
+    category: 'basic',
+    description: 'Numeric input field'
+  },
+  {
+    type: 'email',
+    label: 'Email',
+    icon: '📧',
+    category: 'basic',
+    description: 'Email address input'
+  },
+  {
+    type: 'phone',
+    label: 'Phone',
+    icon: '📞',
+    category: 'basic',
+    description: 'Phone number input'
   },
   {
     type: 'date',
-    label: 'Date Picker',
+    label: 'Date',
     icon: '📅',
+    category: 'basic',
+    description: 'Date picker'
+  },
+  
+  // Advanced Elements
+  {
+    type: 'dropdown',
+    label: 'Dropdown',
+    icon: '📋',
+    category: 'advanced',
+    description: 'Select from options'
   },
   {
-    type: 'file',
+    type: 'checkbox',
+    label: 'Checkbox',
+    icon: '☑️',
+    category: 'advanced',
+    description: 'Multiple choice selection'
+  },
+  {
+    type: 'radio',
+    label: 'Radio Buttons',
+    icon: '🔘',
+    category: 'advanced',
+    description: 'Single choice selection'
+  },
+  
+  // Media Elements
+  {
+    type: 'file-upload',
     label: 'File Upload',
     icon: '📎',
+    category: 'media',
+    description: 'File attachment'
   },
+  {
+    type: 'signature',
+    label: 'Signature',
+    icon: '✍️',
+    category: 'media',
+    description: 'Digital signature'
+  },
+  
+  // Layout Elements
+  {
+    type: 'heading',
+    label: 'Heading',
+    icon: '📌',
+    category: 'layout',
+    description: 'Section title'
+  },
+  {
+    type: 'paragraph',
+    label: 'Paragraph',
+    icon: '📖',
+    category: 'layout',
+    description: 'Text content'
+  },
+  {
+    type: 'divider',
+    label: 'Divider',
+    icon: '➖',
+    category: 'layout',
+    description: 'Visual separator'
+  }
 ];
 
-// Create a new form field from type
-export const createFieldFromType = (
-  type: 'text' | 'select' | 'date' | 'file',
-  customLabel?: string
-): FormField => {
-  const fieldType = FIELD_TYPES.find(ft => ft.type === type);
-  const baseField: FormField = {
-    id: `field_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+export const createFormElement = (type: FormElement['type']): FormElement => {
+  const baseElement: FormElement = {
+    id: `element_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     type,
-    label: customLabel || fieldType?.label || 'New Field',
-    placeholder: type === 'text' ? 'Enter text...' : undefined,
+    label: '',
     required: false,
-    validation: type === 'text' ? { minLength: 1, maxLength: 100 } : undefined,
   };
 
-  // Add default options for select fields
-  if (type === 'select') {
-    baseField.options = [
-      { label: 'Option 1', value: 'option1' },
-      { label: 'Option 2', value: 'option2' },
-    ];
-  }
-
-  return baseField;
-};
-
-// Create validation schema for a form field
-export const createFieldValidationSchema = (field: FormField) => {
-  let schema: z.ZodString | z.ZodOptional<z.ZodString>;
-
-  switch (field.type) {
-    case 'text':
-      schema = z.string();
-      if (field.required) {
-        schema = schema.min(1, 'This field is required');
-      }
-      if (field.validation?.minLength) {
-        schema = schema.min(field.validation.minLength, `Minimum ${field.validation.minLength} characters required`);
-      }
-      if (field.validation?.maxLength) {
-        schema = schema.max(field.validation.maxLength, `Maximum ${field.validation.maxLength} characters allowed`);
-      }
-      if (field.validation?.pattern) {
-        schema = schema.regex(new RegExp(field.validation.pattern), 'Invalid format');
-      }
-      break;
-
-    case 'select':
-      schema = z.string();
-      if (field.required) {
-        schema = schema.min(1, 'Please select an option');
-      }
-      if (field.options) {
-        const validValues = field.options.map(opt => opt.value);
-        schema = schema.refine(val => !val || validValues.includes(val), 'Invalid selection');
-      }
-      break;
-
+  switch (type) {
+    case 'short-text':
+      return {
+        ...baseElement,
+        placeholder: 'Enter text...',
+        validation: { minLength: 1, maxLength: 100 }
+      };
+    
+    case 'long-text':
+      return {
+        ...baseElement,
+        placeholder: 'Enter your message...',
+        settings: { multiline: true, rows: 4 },
+        validation: { minLength: 1, maxLength: 1000 }
+      };
+    
+    case 'number':
+      return {
+        ...baseElement,
+        placeholder: 'Enter number...',
+        validation: { min: 0, max: 999999 }
+      };
+    
+    case 'email':
+      return {
+        ...baseElement,
+        placeholder: 'Enter email address...',
+        validation: { pattern: '^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$' }
+      };
+    
+    case 'phone':
+      return {
+        ...baseElement,
+        placeholder: 'Enter phone number...',
+        validation: { pattern: '^[+]?[0-9\\s\\-()]{10,}$' }
+      };
+    
     case 'date':
-      schema = z.string();
-      if (field.required) {
-        schema = schema.min(1, 'Date is required');
-      }
-      schema = schema.refine(val => !val || !isNaN(Date.parse(val)), 'Invalid date format');
-      break;
-
-    case 'file':
-      schema = z.string();
-      if (field.required) {
-        schema = schema.min(1, 'File is required');
-      }
-      break;
-
+      return {
+        ...baseElement,
+        placeholder: 'Select date...'
+      };
+    
+    case 'dropdown':
+      return {
+        ...baseElement,
+        options: [
+          { label: 'Option 1', value: 'option1' },
+          { label: 'Option 2', value: 'option2' },
+          { label: 'Option 3', value: 'option3' }
+        ]
+      };
+    
+    case 'checkbox':
+      return {
+        ...baseElement,
+        options: [
+          { label: 'Option 1', value: 'option1' },
+          { label: 'Option 2', value: 'option2' }
+        ]
+      };
+    
+    case 'radio':
+      return {
+        ...baseElement,
+        options: [
+          { label: 'Option 1', value: 'option1' },
+          { label: 'Option 2', value: 'option2' }
+        ]
+      };
+    
+    case 'file-upload':
+      return {
+        ...baseElement,
+        settings: { accept: '.pdf,.doc,.docx,.jpg,.png', multiple: false }
+      };
+    
+    case 'signature':
+      return {
+        ...baseElement,
+        settings: {}
+      };
+    
+    case 'heading':
+      return {
+        ...baseElement,
+        label: 'Section Heading',
+        required: false
+      };
+    
+    case 'paragraph':
+      return {
+        ...baseElement,
+        label: 'Paragraph Text',
+        placeholder: 'Enter paragraph content...',
+        required: false
+      };
+    
+    case 'divider':
+      return {
+        ...baseElement,
+        label: 'Divider',
+        required: false
+      };
+    
     default:
-      schema = z.string();
+      return baseElement;
   }
-
-  return field.required ? schema : schema.optional();
 };
 
-// Create validation schema for entire form
-export const createFormValidationSchema = (form: Form) => {
-  const schemaObject: Record<string, z.ZodTypeAny> = {};
-  
-  form.fields.forEach(field => {
-    schemaObject[field.id] = createFieldValidationSchema(field);
-  });
-
-  return z.object(schemaObject);
-};
-
-// Create new form
-export const createNewForm = (name: string, description?: string): Form => ({
-  id: `form_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-  name,
-  description,
-  fields: [],
-  createdAt: new Date(),
-  updatedAt: new Date(),
-});
-
-// Validate form field configuration
-export const validateFieldConfig = (field: FormField): string[] => {
-  const errors: string[] = [];
-
-  if (!field.label.trim()) {
-    errors.push('Field label is required');
-  }
-
-  if (field.type === 'select' && (!field.options || field.options.length === 0)) {
-    errors.push('Select field must have at least one option');
-  }
-
-  if (field.validation?.minLength && field.validation?.maxLength) {
-    if (field.validation.minLength > field.validation.maxLength) {
-      errors.push('Minimum length cannot be greater than maximum length');
+export const createFormComponent = (type: FormComponent['type'] = 'section'): FormComponent => {
+  return {
+    id: `component_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    type,
+    title: 'New Section',
+    description: '',
+    elements: [],
+    settings: {
+      columns: type === 'grid' ? 2 : undefined,
+      collapsible: type === 'accordion' ? true : undefined,
+      defaultOpen: type === 'accordion' ? true : undefined,
+      layout: 'vertical'
     }
-  }
-
-  return errors;
+  };
 };
 
-// Get field type icon
-export const getFieldIcon = (type: string): string => {
-  const fieldType = FIELD_TYPES.find(ft => ft.type === type);
-  return fieldType?.icon || '❓';
+export const createNewForm = (name: string, description?: string): Form => {
+  return {
+    id: `form_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    name,
+    description: description || '',
+    components: [
+      createFormComponent('section')
+    ],
+    settings: {
+      theme: 'default',
+      layout: 'single-column',
+      showProgress: true,
+      allowSave: true,
+      allowPrint: true
+    },
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
 };
 
-// Format field value for display
-export const formatFieldValue = (field: FormField, value: any): string => {
-  if (!value) return '';
+export const getFieldTypeByType = (type: FormElement['type']): FieldType | undefined => {
+  return fieldTypes.find(fieldType => fieldType.type === type);
+};
 
-  switch (field.type) {
-    case 'select':
-      const option = field.options?.find(opt => opt.value === value);
-      return option?.label || value;
-    
-    case 'date':
-      try {
-        return new Date(value).toLocaleDateString();
-      } catch {
-        return value;
-      }
-    
-    case 'file':
-      return value.name || value;
-    
-    default:
-      return String(value);
-  }
+export const getFieldTypesByCategory = (category: FieldType['category']): FieldType[] => {
+  return fieldTypes.filter(fieldType => fieldType.category === category);
 };
