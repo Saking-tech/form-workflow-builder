@@ -97,7 +97,7 @@ export function FieldEditor({ field, formId, isOpen, onClose }: FieldEditorProps
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="">
+        <DialogHeader className="space-y-2">
           <DialogTitle className="flex items-center space-x-2">
             <span className="text-lg">{field.type === 'text' ? '📝' : field.type === 'select' ? '📋' : field.type === 'date' ? '📅' : '📎'}</span>
             <span>Edit {field.type === 'text' ? 'Text Input' : field.type === 'select' ? 'Dropdown' : field.type === 'date' ? 'Date Picker' : 'File Upload'}</span>
