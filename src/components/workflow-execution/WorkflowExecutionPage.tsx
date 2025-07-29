@@ -16,13 +16,13 @@ export function WorkflowExecutionPage() {
   const getExecutionStatus = (execution: WorkflowExecution) => {
     switch (execution.status) {
       case 'completed':
-        return { icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200' };
+        return { label: 'Completed', color: 'bg-green-100 text-green-800' };
       case 'in-progress':
-        return { icon: Clock, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' };
-      case 'error':
-        return { icon: RotateCcw, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200' };
+        return { label: 'In Progress', color: 'bg-blue-100 text-blue-800' };
+      case 'paused':
+        return { label: 'Paused', color: 'bg-yellow-100 text-yellow-800' };
       default:
-        return { icon: Clock, color: 'text-gray-600', bg: 'bg-gray-50', border: 'border-gray-200' };
+        return { label: 'Unknown', color: 'bg-gray-100 text-gray-800' };
     }
   };
 
@@ -35,6 +35,11 @@ export function WorkflowExecutionPage() {
   };
 
   const handleBackToList = () => {
+    setSelectedWorkflow(null);
+    setCurrentExecution(null);
+  };
+
+  const handleBackToWorkflows = () => {
     setSelectedWorkflow(null);
     setCurrentExecution(null);
   };
@@ -184,12 +189,12 @@ export function WorkflowExecutionPage() {
                             <div className="flex items-center space-x-1">
                               {(() => {
                                 const status = getExecutionStatus(latestExecution);
-                                const Icon = status.icon;
+                                const Icon = status.label === 'In Progress' ? Clock : status.label === 'Completed' ? CheckCircle : status.label === 'Paused' ? RotateCcw : Clock;
                                 return (
                                   <>
                                     <Icon className={`w-3 h-3 ${status.color}`} />
                                     <span className={`text-xs font-medium ${status.color}`}>
-                                      {latestExecution.status}
+                                      {status.label}
                                     </span>
                                   </>
                                 );
@@ -260,10 +265,10 @@ export function WorkflowExecutionPage() {
                     .map((execution) => {
                       const workflow = workflows.find(w => w.id === execution.workflowId);
                       const status = getExecutionStatus(execution);
-                      const Icon = status.icon;
+                      const Icon = status.label === 'In Progress' ? Clock : status.label === 'Completed' ? CheckCircle : status.label === 'Paused' ? RotateCcw : Clock;
                       
                       return (
-                        <Card key={execution.id} className={`p-4 ${status.bg} ${status.border} border`}>
+                        <Card key={execution.id} className={`p-4 ${status.color} border`}>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-3">
                               <Icon className={`w-5 h-5 ${status.color}`} />
@@ -283,7 +288,7 @@ export function WorkflowExecutionPage() {
                                   {execution.completedSteps.length} of {workflow?.nodes.length || 0} steps
                                 </div>
                                 <div className={`text-xs ${status.color}`}>
-                                  {execution.status}
+                                  {status.label}
                                 </div>
                               </div>
                               

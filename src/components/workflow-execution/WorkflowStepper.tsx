@@ -97,6 +97,11 @@ export function WorkflowStepper({ workflow, execution: initialExecution, onCompl
     setCurrentStepData({});
   };
 
+  const handleBackToWorkflows = () => {
+    setCurrentExecution(null);
+    setExecution(null);
+  };
+
   const handleStepComplete = (formData: any) => {
     if (!execution) return;
 
@@ -178,7 +183,7 @@ export function WorkflowStepper({ workflow, execution: initialExecution, onCompl
                 return (
                   <div key={node.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center space-x-3">
-                      <Badge variant="outline">{index + 1}</Badge>
+                      <Badge variant="outline" className="">{index + 1}</Badge>
                       <span className="font-medium">{form?.name || 'Unknown Form'}</span>
                     </div>
                     <span className="text-sm text-gray-500">
@@ -190,7 +195,7 @@ export function WorkflowStepper({ workflow, execution: initialExecution, onCompl
             </div>
           </div>
           
-          <Button onClick={startExecution} size="lg">
+          <Button variant="default" size="lg" className="" onClick={startExecution}>
             <Play className="w-5 h-5 mr-2" />
             Start Workflow
           </Button>
@@ -225,7 +230,7 @@ export function WorkflowStepper({ workflow, execution: initialExecution, onCompl
                         <CheckCircle className="w-4 h-4 text-green-500" />
                         <span className="font-medium">{form?.name || 'Unknown Form'}</span>
                       </div>
-                      <Badge variant="outline">Step {index + 1}</Badge>
+                      <Badge variant="outline" className="">Step {index + 1}</Badge>
                     </div>
                     {stepData && (
                       <div className="text-sm text-gray-600">
@@ -239,11 +244,11 @@ export function WorkflowStepper({ workflow, execution: initialExecution, onCompl
           </div>
           
           <div className="flex space-x-4 justify-center">
-            <Button variant="outline" onClick={restartExecution}>
+            <Button variant="outline" size="default" className="" onClick={restartExecution}>
               <RotateCcw className="w-4 h-4 mr-2" />
               Run Again
             </Button>
-            <Button onClick={() => setCurrentExecution(null)}>
+            <Button variant="default" size="default" className="" onClick={handleBackToWorkflows}>
               Back to Workflows
             </Button>
           </div>
@@ -260,7 +265,7 @@ export function WorkflowStepper({ workflow, execution: initialExecution, onCompl
           <h1 className="text-2xl font-bold text-gray-800">
             {workflow.name} - Execution
           </h1>
-          <Badge variant="secondary">
+          <Badge variant="secondary" className="">
             Step {execution.currentStepIndex + 1} of {workflow.nodes.length}
           </Badge>
         </div>
