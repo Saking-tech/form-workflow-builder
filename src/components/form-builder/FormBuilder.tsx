@@ -618,7 +618,7 @@ function SortableField({
              </button>
              <button
                onClick={onDelete}
-               className="p-1 text-gray-700 hover:text-gray-900 transition-colors"
+               className="p-1 text-red-700 hover:text-red-900 transition-colors"
                title="Delete field"
              >
                <Trash2 className="w-3 h-3" />
