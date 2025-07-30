@@ -1,385 +1,737 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { FieldPalette } from './FieldPalette';
-import { FormCanvas } from './FormCanvas';
+import { useState } from 'react';
 import { useFormStore } from '@/stores/formStore';
-import { createNewForm, createMultiPartForm } from '@/lib/formUtils';
+import { Form, FormSection, FormField } from '@/types';
+import { FIELD_TYPES } from '@/lib/formTemplates';
+import { generateId } from '@/lib/utils';
 import { 
-  Plus, 
-  FileText, 
-  Settings, 
-  Eye, 
-  Trash2, 
-  Copy,
-  Calendar,
-  Clock,
-  Users,
-  BarChart3,
-  Building2,
-  Scale,
-  Briefcase,
-  Layers
-} from 'lucide-react';
+  DndContext, 
+  DragEndEvent, 
+  useSensors, 
+  useSensor, 
+  PointerSensor,
+  KeyboardSensor,
+  closestCenter,
+  DragOverlay,
+  DragStartEvent
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { Plus, GripVertical, Trash2, Settings, Edit2, Eye, Save, X, Check } from 'lucide-react';
+import { useDroppable } from '@dnd-kit/core';
 
-export function FormBuilder() {
-  const { forms, currentForm, addForm, setCurrentForm, deleteForm, duplicateForm } = useFormStore();
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [newFormName, setNewFormName] = useState('');
-  const [newFormDescription, setNewFormDescription] = useState('');
-  const [formType, setFormType] = useState<'single' | 'multi-part'>('single');
-  const [partsCount, setPartsCount] = useState(2);
-  const [isLoading, setIsLoading] = useState(true);
+interface FormBuilderProps {
+  form: Form;
+  onFormChange: (form: Form) => void;
+}
 
-  // Handle store hydration
-  useEffect(() => {
-    // Small delay to ensure store is hydrated
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 100);
-    return () => clearTimeout(timer);
-  }, []);
+export default function FormBuilder({ form, onFormChange }: FormBuilderProps) {
+  const { updateForm, addSectionToForm, addFieldToSection, removeSectionFromForm, removeFieldFromSection, reorderFieldsInSection } = useFormStore();
+  const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [draggedField, setDraggedField] = useState<typeof FIELD_TYPES[0] | null>(null);
+  const [editingField, setEditingField] = useState<{ sectionId: string; fieldId: string } | null>(null);
+  const [editingSection, setEditingSection] = useState<string | null>(null);
 
-  const handleCreateForm = () => {
-    if (newFormName.trim()) {
-      let newForm;
-      if (formType === 'multi-part') {
-        newForm = createMultiPartForm(newFormName.trim(), newFormDescription.trim(), partsCount);
-      } else {
-        newForm = createNewForm(newFormName.trim(), newFormDescription.trim());
-      }
-      addForm(newForm);
-      setCurrentForm(newForm);
-      setNewFormName('');
-      setNewFormDescription('');
-      setFormType('single');
-      setPartsCount(2);
-      setShowCreateDialog(false);
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor)
+  );
+
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    if (active.data.current?.type === 'field-type') {
+      setDraggedField(active.data.current.fieldType);
     }
   };
 
-  const handleFormSelect = (form: any) => {
-    setCurrentForm(form);
-  };
-
-  const handleDeleteForm = (formId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    deleteForm(formId);
-  };
-
-  const handleDuplicateForm = (formId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    duplicateForm(formId);
-  };
-
-  const formatDate = (date: Date | undefined) => {
-    if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
-      return 'Unknown';
-    }
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setDraggedField(null);
     
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
-  };
+    if (!over) return;
 
-  const getFormTypeIcon = (form: any) => {
-    if (form.settings?.multiPart) {
-      return <Layers className="w-4 h-4 text-purple-600" />;
+    // Handle field type drop (from palette to section or drop zone)
+    if (active.data.current?.type === 'field-type') {
+      const fieldType = active.data.current.fieldType;
+      let sectionId = over.id as string;
+      
+      // Check if dropped on a section drop zone
+      if (over.data.current?.type === 'section-drop-zone') {
+        sectionId = over.data.current.sectionId;
+      }
+      
+      // Check if the drop target is a section
+      const targetSection = form.sections.find(section => section.id === sectionId);
+      
+      if (targetSection) {
+        const newField: FormField = {
+          id: generateId(),
+          type: fieldType.type,
+          label: fieldType.label,
+          placeholder: `Enter ${fieldType.label.toLowerCase()}`,
+          required: false,
+          validation: fieldType.defaultValidation,
+          order: targetSection.fields.length
+        };
+        
+        addFieldToSection(form.id, sectionId, newField);
+        
+        // Update the form in the parent component
+        const updatedForm = {
+          ...form,
+          sections: form.sections.map(section =>
+            section.id === sectionId
+              ? { ...section, fields: [...section.fields, newField] }
+              : section
+          )
+        };
+        onFormChange(updatedForm);
+      }
     }
-    return <FileText className="w-4 h-4 text-blue-600" />;
-  };
 
-  const getFormTypeLabel = (form: any) => {
-    if (form.settings?.multiPart) {
-      return `${form.settings.parts?.total || 0} Parts`;
+    // Handle field reordering within section
+    if (active.data.current?.type === 'field' && over.data.current?.type === 'field') {
+      const activeFieldId = active.id as string;
+      const overFieldId = over.id as string;
+      const sectionId = active.data.current.sectionId;
+      
+      if (activeFieldId !== overFieldId) {
+        const section = form.sections.find(s => s.id === sectionId);
+        if (section) {
+          const oldIndex = section.fields.findIndex(f => f.id === activeFieldId);
+          const newIndex = section.fields.findIndex(f => f.id === overFieldId);
+          
+          const reorderedFields = [...section.fields];
+          const [movedField] = reorderedFields.splice(oldIndex, 1);
+          reorderedFields.splice(newIndex, 0, movedField);
+          
+          // Update field orders
+          const updatedFields = reorderedFields.map((field, index) => ({
+            ...field,
+            order: index
+          }));
+          
+          const updatedForm = {
+            ...form,
+            sections: form.sections.map(section =>
+              section.id === sectionId
+                ? { ...section, fields: updatedFields }
+                : section
+            )
+          };
+          onFormChange(updatedForm);
+        }
+      }
     }
-    return 'Single Form';
   };
 
-  // Show loading state
-  if (isLoading) {
-    return (
-      <div className="h-full flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading forms...</p>
-        </div>
-      </div>
-    );
-  }
+  const addNewSection = () => {
+    const newSection: FormSection = {
+      id: generateId(),
+      title: 'New Section',
+      fields: [],
+      order: form.sections.length
+    };
+    addSectionToForm(form.id, newSection);
+    
+    // Update the form in the parent component
+    const updatedForm = {
+      ...form,
+      sections: [...form.sections, newSection]
+    };
+    onFormChange(updatedForm);
+  };
+
+  const updateSectionTitle = (sectionId: string, title: string) => {
+    const updatedForm = {
+      ...form,
+      sections: form.sections.map(section =>
+        section.id === sectionId ? { ...section, title } : section
+      )
+    };
+    onFormChange(updatedForm);
+  };
+
+  const deleteSection = (sectionId: string) => {
+    removeSectionFromForm(form.id, sectionId);
+    const updatedForm = {
+      ...form,
+      sections: form.sections.filter(section => section.id !== sectionId)
+    };
+    onFormChange(updatedForm);
+  };
+
+  const deleteField = (sectionId: string, fieldId: string) => {
+    removeFieldFromSection(form.id, sectionId, fieldId);
+    const updatedForm = {
+      ...form,
+      sections: form.sections.map(section =>
+        section.id === sectionId
+          ? { ...section, fields: section.fields.filter(field => field.id !== fieldId) }
+          : section
+      )
+    };
+    onFormChange(updatedForm);
+  };
+
+  const updateField = (sectionId: string, fieldId: string, updates: Partial<FormField>) => {
+    const updatedForm = {
+      ...form,
+      sections: form.sections.map(section =>
+        section.id === sectionId
+          ? {
+              ...section,
+              fields: section.fields.map(field =>
+                field.id === fieldId ? { ...field, ...updates } : field
+              )
+            }
+          : section
+      )
+    };
+    onFormChange(updatedForm);
+  };
+
+
 
   return (
-    <div className="h-full flex">
-      {/* Left Sidebar - Form List */}
-      <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
-        {/* Header */}
-        <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-          <div className="flex items-center space-x-2 mb-4">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <FileText className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">Forms</h2>
-              <p className="text-sm text-gray-600">{forms?.length || 0} forms created</p>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="flex h-full">
+        {/* Field Palette */}
+        <div className="w-64 bg-gray-50 border-r border-gray-200 p-4">
+          <h3 className="font-semibold text-gray-900 mb-4">Form Fields</h3>
+          <p className="text-sm text-gray-600 mb-4">Drag fields to add them to sections</p>
+          
+
+
+          {/* All Field Types */}
+          <div>
+            <h4 className="text-sm font-medium text-gray-700 mb-2">All Field Types</h4>
+            <div className="space-y-2">
+              {FIELD_TYPES.map((fieldType) => (
+                <DraggableFieldType key={fieldType.type} fieldType={fieldType} />
+              ))}
             </div>
           </div>
-          
-          <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-            <DialogTrigger asChild>
-              <Button variant="default" size="default" className="w-full bg-blue-600 hover:bg-blue-700">
-                <Plus className="w-4 h-4 mr-2" />
-                Create New Form
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader className="space-y-2">
-                <DialogTitle className="flex items-center space-x-2 text-lg font-semibold">
-                  <FileText className="w-5 h-5 text-blue-600" />
-                  <span>Create New Form</span>
-                </DialogTitle>
-                <DialogDescription className="text-gray-600">
-                  Create a new form with a unique name and description.
-                </DialogDescription>
-              </DialogHeader>
-              
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="form-name" className="text-sm font-medium">Form Name</Label>
-                  <Input
-                    id="form-name"
-                    type="text"
-                    value={newFormName}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewFormName(e.target.value)}
-                    placeholder="Enter form name..."
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="form-description" className="text-sm font-medium">Description (Optional)</Label>
-                  <Input
-                    id="form-description"
-                    type="text"
-                    value={newFormDescription}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewFormDescription(e.target.value)}
-                    placeholder="Enter form description..."
-                    className="mt-1"
-                  />
-                </div>
-                
-                {/* Form Type Selection */}
-                <div>
-                  <Label className="text-sm font-medium">Form Type</Label>
-                  <div className="mt-2 space-y-2">
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="formType"
-                        value="single"
-                        checked={formType === 'single'}
-                        onChange={(e) => setFormType(e.target.value as 'single' | 'multi-part')}
-                        className="text-blue-600"
-                      />
-                      <div className="flex items-center space-x-2">
-                        <FileText className="w-4 h-4 text-blue-600" />
-                        <span className="text-sm">Single Form</span>
-                      </div>
-                    </label>
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="formType"
-                        value="multi-part"
-                        checked={formType === 'multi-part'}
-                        onChange={(e) => setFormType(e.target.value as 'single' | 'multi-part')}
-                        className="text-blue-600"
-                      />
-                      <div className="flex items-center space-x-2">
-                        <Layers className="w-4 h-4 text-purple-600" />
-                        <span className="text-sm">Multi-Part Form</span>
-                      </div>
-                    </label>
-                  </div>
-                </div>
-
-                {/* Parts Count for Multi-Part Forms */}
-                {formType === 'multi-part' && (
-                  <div>
-                    <Label htmlFor="parts-count" className="text-sm font-medium">Number of Parts</Label>
-                    <div className="mt-2 flex items-center space-x-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setPartsCount(Math.max(2, partsCount - 1))}
-                        disabled={partsCount <= 2}
-                        className=""
-                      >
-                        -
-                      </Button>
-                      <span className="text-sm font-medium min-w-[2rem] text-center">{partsCount}</span>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setPartsCount(partsCount + 1)}
-                        disabled={partsCount >= 10}
-                        className=""
-                      >
-                        +
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex justify-end space-x-2 pt-4">
-                  <Button
-                    variant="outline"
-                    size="default"
-                    onClick={() => setShowCreateDialog(false)}
-                    className=""
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={handleCreateForm}
-                    disabled={!newFormName.trim()}
-                    variant="default"
-                    size="default"
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    Create Form
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
         </div>
 
-        {/* Form List */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3">
-          {!forms || forms.length === 0 ? (
-            <div className="text-center py-8">
-              <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <h3 className="text-sm font-medium text-gray-900 mb-1">No Forms Yet</h3>
-              <p className="text-xs text-gray-500">Create your first form to get started</p>
-            </div>
-          ) : (
-            forms.map((form) => (
-              <Card
-                key={form.id}
-                className={`p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${
-                  currentForm?.id === form.id
-                    ? 'ring-2 ring-blue-500 bg-blue-50 border-blue-200'
-                    : 'hover:border-gray-300'
-                }`}
-                onClick={() => handleFormSelect(form)}
+        {/* Form Canvas */}
+        <div className="flex-1 p-6 overflow-y-auto">
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">Form Builder</h2>
+                <p className="text-sm text-gray-600">Build your form by adding sections and fields</p>
+              </div>
+              <button
+                onClick={addNewSection}
+                className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2 mb-2">
-                      {getFormTypeIcon(form)}
-                      <h3 className="font-medium text-gray-900 truncate">{form.name}</h3>
-                    </div>
-                    {form.description && (
-                      <p className="text-sm text-gray-500 truncate mb-2">{form.description}</p>
-                    )}
-                    <div className="flex items-center space-x-4 mb-2 text-xs text-gray-500">
-                      <div className="flex items-center space-x-1">
-                        <BarChart3 className="w-3 h-3" />
-                        <span>{form.components?.length || 0} components</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Users className="w-3 h-3" />
-                        <span>{form.components?.reduce((total, comp) => total + (comp.elements?.length || 0), 0) || 0} elements</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2 text-xs text-gray-400">
-                      <Clock className="w-3 h-3" />
-                      <span>Updated {formatDate(form.updatedAt)}</span>
-                    </div>
-                    <div className="mt-2">
-                      <Badge variant="outline" className="text-xs">
-                        {getFormTypeLabel(form)}
-                      </Badge>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-1 ml-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0 hover:bg-blue-100"
-                      title="Duplicate form"
-                      onClick={(e: React.MouseEvent) => handleDuplicateForm(form.id, e)}
-                    >
-                      <Copy className="w-3 h-3 text-blue-600" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0 hover:bg-red-100"
-                      title="Delete form"
-                      onClick={(e: React.MouseEvent) => handleDeleteForm(form.id, e)}
-                    >
-                      <Trash2 className="w-3 h-3 text-red-600" />
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            ))
-          )}
+                <Plus className="w-4 h-4 mr-2" />
+                Add Section
+              </button>
+            </div>
+
+            <SortableContext
+              items={form.sections.map(s => s.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              {form.sections.map((section) => (
+                                 <SortableSection
+                   key={section.id}
+                   section={section}
+                   formId={form.id}
+                   isActive={activeSection === section.id}
+                   onActivate={() => setActiveSection(section.id)}
+                   onTitleChange={(title) => updateSectionTitle(section.id, title)}
+                   onDelete={() => deleteSection(section.id)}
+                   onDeleteField={(fieldId) => deleteField(section.id, fieldId)}
+                   onUpdateField={(fieldId, updates) => updateField(section.id, fieldId, updates)}
+                   editingField={editingField}
+                   setEditingField={setEditingField}
+                 />
+              ))}
+            </SortableContext>
+
+            {form.sections.length === 0 && (
+              <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-lg">
+                <Plus className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No sections yet</h3>
+                <p className="text-gray-600 mb-4">Start building your form by adding sections</p>
+                <button
+                  onClick={addNewSection}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  Add First Section
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex">
-        {currentForm ? (
-          <>
-            {/* Field Palette */}
-            <div className="w-80 border-r border-gray-200">
-              <FieldPalette />
-            </div>
-            
-            {/* Form Canvas */}
-            <div className="flex-1">
-              <FormCanvas formId={currentForm.id} />
-            </div>
-          </>
-        ) : (
-          <div className="flex-1 flex items-center justify-center bg-gray-50">
-            <div className="text-center">
-              <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No Form Selected</h3>
-              <p className="text-gray-500 mb-6">Select a form from the list or create a new one</p>
-              <Button
-                onClick={() => setShowCreateDialog(true)}
-                variant="default"
-                size="default"
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Create New Form
-              </Button>
+      <DragOverlay>
+        {draggedField ? (
+          <div className="p-3 bg-white border border-blue-200 rounded-md shadow-lg">
+            <div className="flex items-center">
+              <span className="text-lg mr-2">{draggedField.icon}</span>
+              <span className="text-sm font-medium text-gray-700">{draggedField.label}</span>
             </div>
           </div>
-        )}
+        ) : null}
+      </DragOverlay>
+    </DndContext>
+  );
+}
+
+// Draggable Field Type Component
+function DraggableFieldType({ fieldType }: { fieldType: typeof FIELD_TYPES[0] }) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useSortable({
+    id: fieldType.type,
+    data: {
+      type: 'field-type',
+      fieldType
+    }
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className="p-3 bg-white border border-gray-200 rounded-md cursor-move hover:border-blue-300 hover:shadow-sm transition-all"
+    >
+      <div className="flex items-center">
+        <span className="text-lg mr-2">{fieldType.icon}</span>
+        <span className="text-sm font-medium text-gray-700">{fieldType.label}</span>
+      </div>
+    </div>
+  );
+}
+
+// Sortable Section Component
+function SortableSection({ 
+  section, 
+  formId, 
+  isActive, 
+  onActivate, 
+  onTitleChange,
+  onDelete, 
+  onDeleteField,
+  onUpdateField,
+  editingField,
+  setEditingField
+}: { 
+  section: FormSection;
+  formId: string;
+  isActive: boolean;
+  onActivate: () => void;
+  onTitleChange: (title: string) => void;
+  onDelete: () => void;
+  onDeleteField: (fieldId: string) => void;
+  onUpdateField: (fieldId: string, updates: Partial<FormField>) => void;
+  editingField: { sectionId: string; fieldId: string } | null;
+  setEditingField: (field: { sectionId: string; fieldId: string } | null) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useSortable({
+    id: section.id,
+    data: {
+      type: 'section',
+      section
+    }
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={`bg-white border border-gray-200 rounded-lg p-6 transition-all ${
+        isActive ? 'ring-2 ring-blue-500 shadow-lg' : 'hover:shadow-md'
+      }`}
+      data-droppable="true"
+    >
+      <div className="flex items-center justify-between mb-4">
+                 <div className="flex items-center space-x-2">
+           <GripVertical className="w-4 h-4 text-gray-500" />
+           <h3 className="text-lg font-semibold text-gray-900 cursor-pointer hover:text-blue-600">
+             {section.title}
+           </h3>
+         </div>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={onActivate}
+            className={`p-2 rounded-md transition-colors ${
+              isActive 
+                ? 'bg-blue-100 text-blue-600' 
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+            title="Edit section"
+          >
+            <Settings className="w-4 h-4" />
+          </button>
+          <button 
+            onClick={onDelete}
+            className="p-2 rounded-md bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
+            title="Delete section"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {section.subtitle && (
+        <p className="text-sm text-gray-600 mb-4">{section.subtitle}</p>
+      )}
+
+      
+
+      <SortableContext
+        items={section.fields.map(f => f.id)}
+        strategy={verticalListSortingStrategy}
+      >
+        <div className="space-y-4">
+          {section.fields.map((field) => (
+            <SortableField
+              key={field.id}
+              field={field}
+              sectionId={section.id}
+              onDelete={() => onDeleteField(field.id)}
+              onUpdate={(updates) => onUpdateField(field.id, updates)}
+              editingField={editingField}
+              setEditingField={setEditingField}
+            />
+          ))}
+          
+                               {section.fields.length === 0 && (
+            <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+              <Plus className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+              <p className="text-sm text-gray-600 mb-2">No fields in this section</p>
+              <p className="text-xs text-gray-500">Drag fields from the left panel to add them here</p>
+            </div>
+          )}
+        </div>
+      </SortableContext>
+
+      {/* Drop zone at the bottom of each section */}
+      <SectionDropZone sectionId={section.id} />
+    </div>
+  );
+}
+
+// Section Drop Zone Component
+function SectionDropZone({ sectionId }: { sectionId: string }) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: `drop-zone-${sectionId}`,
+    data: {
+      type: 'section-drop-zone',
+      sectionId
+    }
+  });
+
+  return (
+    <div 
+      ref={setNodeRef}
+      className={`mt-4 p-4 border-2 border-dashed rounded-lg transition-colors group ${
+        isOver 
+          ? 'border-blue-400 bg-blue-100' 
+          : 'border-gray-200 bg-gray-50 hover:border-blue-300 hover:bg-blue-50'
+      }`}
+    >
+      <div className={`flex items-center justify-center space-x-2 transition-colors ${
+        isOver 
+          ? 'text-blue-600' 
+          : 'text-gray-400 group-hover:text-blue-500'
+      }`}>
+        <Plus className="w-5 h-5" />
+        <span className="text-sm font-medium">
+          {isOver ? 'Drop here to add field' : 'Drop fields here to add to this section'}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// Sortable Field Component
+function SortableField({
+  field,
+  sectionId,
+  onDelete,
+  onUpdate,
+  editingField,
+  setEditingField
+}: {
+  field: FormField;
+  sectionId: string;
+  onDelete: () => void;
+  onUpdate: (updates: Partial<FormField>) => void;
+  editingField: { sectionId: string; fieldId: string } | null;
+  setEditingField: (field: { sectionId: string; fieldId: string } | null) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useSortable({
+    id: field.id,
+    data: {
+      type: 'field',
+      field,
+      sectionId
+    }
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const isEditing = editingField?.sectionId === sectionId && editingField?.fieldId === field.id;
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className="p-4 border border-gray-200 rounded-md bg-gray-50 hover:bg-gray-100 transition-colors"
+    >
+      {isEditing ? (
+        <FieldEditor
+          field={field}
+          onSave={(updates) => {
+            onUpdate(updates);
+            setEditingField(null);
+          }}
+          onCancel={() => setEditingField(null)}
+        />
+      ) : (
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+                         <div className="flex items-center space-x-2">
+               <GripVertical className="w-3 h-3 text-gray-500" />
+               <label className="block text-sm font-medium text-gray-700">
+                 {field.label}
+                 {field.required && <span className="text-red-500 ml-1">*</span>}
+               </label>
+               <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                 {field.type}
+               </span>
+             </div>
+            {field.placeholder && (
+              <p className="text-xs text-gray-500 mt-1">{field.placeholder}</p>
+            )}
+          </div>
+                     <div className="flex items-center space-x-2">
+             <button
+               onClick={() => setEditingField({ sectionId, fieldId: field.id })}
+               className="p-1 text-gray-500 hover:text-gray-700 transition-colors"
+               title="Edit field"
+             >
+               <Edit2 className="w-3 h-3" />
+             </button>
+             <button
+               onClick={onDelete}
+               className="p-1 text-red-500 hover:text-red-700 transition-colors"
+               title="Delete field"
+             >
+               <Trash2 className="w-3 h-3" />
+             </button>
+           </div>
+        </div>
+      )}
+      
+      {field.options && field.options.length > 0 && !isEditing && (
+        <div className="mt-2">
+          <p className="text-xs text-gray-500">Options:</p>
+          <div className="flex flex-wrap gap-1 mt-1">
+            {field.options.map((option, index) => (
+              <span key={index} className="text-xs text-gray-700 bg-gray-200 px-2 py-1 rounded">
+                {option.label}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Field Editor Component
+function FieldEditor({
+  field,
+  onSave,
+  onCancel
+}: {
+  field: FormField;
+  onSave: (updates: Partial<FormField>) => void;
+  onCancel: () => void;
+}) {
+  const [formData, setFormData] = useState({
+    label: field.label,
+    placeholder: field.placeholder || '',
+    required: field.required,
+    options: field.options || []
+  });
+
+  const [newOption, setNewOption] = useState({ label: '', value: '' });
+
+  const handleSave = () => {
+    onSave({
+      label: formData.label,
+      placeholder: formData.placeholder,
+      required: formData.required,
+      options: formData.options
+    });
+  };
+
+  const addOption = () => {
+    if (newOption.label && newOption.value) {
+      setFormData(prev => ({
+        ...prev,
+        options: [...prev.options, { ...newOption }]
+      }));
+      setNewOption({ label: '', value: '' });
+    }
+  };
+
+  const removeOption = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      options: prev.options.filter((_, i) => i !== index)
+    }));
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Label</label>
+                     <input
+             type="text"
+             value={formData.label}
+             onChange={(e) => setFormData(prev => ({ ...prev, label: e.target.value }))}
+             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+           />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Placeholder</label>
+                     <input
+             type="text"
+             value={formData.placeholder}
+             onChange={(e) => setFormData(prev => ({ ...prev, placeholder: e.target.value }))}
+             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+           />
+        </div>
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <input
+          type="checkbox"
+          id="required"
+          checked={formData.required}
+          onChange={(e) => setFormData(prev => ({ ...prev, required: e.target.checked }))}
+          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+        />
+        <label htmlFor="required" className="text-sm font-medium text-gray-700">Required field</label>
+      </div>
+
+      {(field.type === 'dropdown' || field.type === 'radio' || field.type === 'checkbox') && (
+        <div className="space-y-3">
+          <label className="block text-sm font-medium text-gray-700">Options</label>
+          <div className="space-y-2">
+            {formData.options.map((option, index) => (
+              <div key={index} className="flex items-center space-x-2">
+                                 <input
+                   type="text"
+                   value={option.label}
+                   onChange={(e) => {
+                     const newOptions = [...formData.options];
+                     newOptions[index].label = e.target.value;
+                     setFormData(prev => ({ ...prev, options: newOptions }));
+                   }}
+                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                   placeholder="Option label"
+                 />
+                 <input
+                   type="text"
+                   value={option.value}
+                   onChange={(e) => {
+                     const newOptions = [...formData.options];
+                     newOptions[index].value = e.target.value;
+                     setFormData(prev => ({ ...prev, options: newOptions }));
+                   }}
+                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                   placeholder="Option value"
+                 />
+                <button
+                  onClick={() => removeOption(index)}
+                  className="p-2 text-red-400 hover:text-red-600"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+            <div className="flex items-center space-x-2">
+                             <input
+                 type="text"
+                 value={newOption.label}
+                 onChange={(e) => setNewOption(prev => ({ ...prev, label: e.target.value }))}
+                 className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                 placeholder="New option label"
+               />
+               <input
+                 type="text"
+                 value={newOption.value}
+                 onChange={(e) => setNewOption(prev => ({ ...prev, value: e.target.value }))}
+                 className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                 placeholder="New option value"
+               />
+              <button
+                onClick={addOption}
+                className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-center justify-end space-x-2">
+        <button
+          onClick={onCancel}
+          className="px-3 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+        >
+          <X className="w-4 h-4" />
+        </button>
+        <button
+          onClick={handleSave}
+          className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+        >
+          <Check className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );
