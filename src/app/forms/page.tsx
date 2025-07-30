@@ -203,14 +203,14 @@ export default function FormsPage() {
                 </button>
                 <button 
                   onClick={() => setInteractiveForm(form)}
-                  className="px-2 py-1 bg-green-100 text-green-700 rounded-md text-xs hover:bg-green-200 transition-colors" 
+                  className="px-3 py-1 bg-green-500 text-gray-50 rounded-md text-sm hover:bg-green-700 transition-colors" 
                   title="Test form with validation"
                 >
                   Test
                 </button>
                 <button
                   onClick={() => setCurrentForm(form)}
-                  className="px-3 py-1 bg-blue-100 text-blue-700 rounded-md text-sm hover:bg-blue-200 transition-colors"
+                  className="px-3 py-1 bg-blue-500 text-gray-50 rounded-md text-sm hover:bg-blue-700 transition-colors"
                 >
                   Edit
                 </button>

@@ -8,13 +8,15 @@ const createField = (
   placeholder?: string,
   required = false,
   options?: Array<{ label: string; value: string }>,
-  validation?: FormField['validation']
+  validation?: FormField['validation'],
+  size: '1x1' | '1x2' | '1x3' = '1x1'
 ): FormField => ({
   id: generateId(),
   type,
   label,
   placeholder,
   required,
+  size,
   options,
   validation
 });
@@ -24,13 +26,15 @@ const createSection = (
   title: string,
   subtitle?: string,
   fields: FormField[] = [],
-  order = 0
+  order = 0,
+  collapsed = false
 ): FormSection => ({
   id: generateId(),
   title,
   subtitle,
   fields,
-  order
+  order,
+  collapsed
 });
 
 export const FORM_TEMPLATES: FormTemplate[] = [
@@ -144,43 +148,50 @@ export const FIELD_TYPES = [
     type: 'text' as const,
     label: 'Text Input',
     icon: '📝',
-    defaultValidation: { minLength: 1 }
+    defaultValidation: { minLength: 1 },
+    defaultSize: '1x1' as const
   },
   {
     type: 'textarea' as const,
     label: 'Text Area',
     icon: '📄',
-    defaultValidation: { minLength: 1 }
+    defaultValidation: { minLength: 1 },
+    defaultSize: '1x3' as const
   },
   {
     type: 'dropdown' as const,
     label: 'Dropdown',
     icon: '📋',
-    defaultValidation: { minLength: 1 }
+    defaultValidation: { minLength: 1 },
+    defaultSize: '1x1' as const
   },
   {
     type: 'date' as const,
     label: 'Date Picker',
     icon: '📅',
-    defaultValidation: { minLength: 1 }
+    defaultValidation: { minLength: 1 },
+    defaultSize: '1x1' as const
   },
   {
     type: 'radio' as const,
     label: 'Radio Buttons',
     icon: '🔘',
-    defaultValidation: { minLength: 1 }
+    defaultValidation: { minLength: 1 },
+    defaultSize: '1x2' as const
   },
   {
     type: 'checkbox' as const,
     label: 'Checkbox',
     icon: '☑️',
-    defaultValidation: { minLength: 1 }
+    defaultValidation: { minLength: 1 },
+    defaultSize: '1x1' as const
   },
   {
     type: 'file' as const,
     label: 'File Upload',
     icon: '📎',
-    defaultValidation: { minLength: 1 }
+    defaultValidation: { minLength: 1 },
+    defaultSize: '1x2' as const
   },
   {
     type: 'email' as const,
@@ -188,18 +199,21 @@ export const FIELD_TYPES = [
     icon: '📧',
     defaultValidation: { 
       pattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$' 
-    }
+    },
+    defaultSize: '1x1' as const
   },
   {
     type: 'number' as const,
     label: 'Number Input',
     icon: '🔢',
-    defaultValidation: { min: 0 }
+    defaultValidation: { min: 0 },
+    defaultSize: '1x1' as const
   },
   {
     type: 'multiselect' as const,
     label: 'Multi-Select',
     icon: '📋',
-    defaultValidation: { minLength: 1 }
+    defaultValidation: { minLength: 1 },
+    defaultSize: '1x2' as const
   }
 ];

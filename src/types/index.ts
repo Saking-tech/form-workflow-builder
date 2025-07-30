@@ -4,6 +4,7 @@ export interface FormField {
   label: string;
   placeholder?: string;
   required: boolean;
+  size: '1x1' | '1x2' | '1x3'; // Grid size for the field
   validation?: {
     minLength?: number;
     maxLength?: number;
@@ -25,6 +26,7 @@ export interface FormSection {
   subtitle?: string;
   fields: FormField[];
   order: number;
+  collapsed?: boolean; // For collapsible sections
 }
 
 export interface Form {

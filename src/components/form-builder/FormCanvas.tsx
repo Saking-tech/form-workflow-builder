@@ -173,6 +173,7 @@ export default function FormCanvas({ formId }: FormCanvasProps) {
         label: `New ${fieldType} field`,
         placeholder: `Enter ${fieldType}...`,
         required: false,
+        size: '1x1', // Default size for new fields
         order: 0
       };
       

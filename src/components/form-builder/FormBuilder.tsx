@@ -22,7 +22,7 @@ import {
   useSortable
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Plus, GripVertical, Trash2, Settings, Edit2, Eye, Save, X, Check } from 'lucide-react';
+import { Plus, GripVertical, Trash2, Settings, Edit2, Eye, Save, X, Check, ChevronDown, ChevronRight } from 'lucide-react';
 import { useDroppable } from '@dnd-kit/core';
 
 interface FormBuilderProps {
@@ -36,6 +36,7 @@ export default function FormBuilder({ form, onFormChange }: FormBuilderProps) {
   const [draggedField, setDraggedField] = useState<typeof FIELD_TYPES[0] | null>(null);
   const [editingField, setEditingField] = useState<{ sectionId: string; fieldId: string } | null>(null);
   const [editingSection, setEditingSection] = useState<string | null>(null);
+  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -79,6 +80,7 @@ export default function FormBuilder({ form, onFormChange }: FormBuilderProps) {
           label: fieldType.label,
           placeholder: `Enter ${fieldType.label.toLowerCase()}`,
           required: false,
+          size: fieldType.defaultSize || '1x1',
           validation: fieldType.defaultValidation,
           order: targetSection.fields.length
         };
@@ -159,6 +161,18 @@ export default function FormBuilder({ form, onFormChange }: FormBuilderProps) {
       )
     };
     onFormChange(updatedForm);
+  };
+
+  const toggleSectionCollapse = (sectionId: string) => {
+    setCollapsedSections(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(sectionId)) {
+        newSet.delete(sectionId);
+      } else {
+        newSet.add(sectionId);
+      }
+      return newSet;
+    });
   };
 
   const deleteSection = (sectionId: string) => {
@@ -262,6 +276,8 @@ export default function FormBuilder({ form, onFormChange }: FormBuilderProps) {
                    onUpdateField={(fieldId, updates) => updateField(section.id, fieldId, updates)}
                    editingField={editingField}
                    setEditingField={setEditingField}
+                   isCollapsed={collapsedSections.has(section.id)}
+                   onToggleCollapse={() => toggleSectionCollapse(section.id)}
                  />
               ))}
             </SortableContext>
@@ -320,9 +336,14 @@ function DraggableFieldType({ fieldType }: { fieldType: typeof FIELD_TYPES[0] })
       {...listeners}
       className="p-3 bg-white border border-gray-200 rounded-md cursor-move hover:border-blue-300 hover:shadow-sm transition-all"
     >
-      <div className="flex items-center">
-        <span className="text-lg mr-2">{fieldType.icon}</span>
-        <span className="text-sm font-medium text-gray-700">{fieldType.label}</span>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center">
+          <span className="text-lg mr-2">{fieldType.icon}</span>
+          <span className="text-sm font-medium text-gray-700">{fieldType.label}</span>
+        </div>
+        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+          {fieldType.defaultSize}
+        </span>
       </div>
     </div>
   );
@@ -339,7 +360,9 @@ function SortableSection({
   onDeleteField,
   onUpdateField,
   editingField,
-  setEditingField
+  setEditingField,
+  isCollapsed,
+  onToggleCollapse
 }: { 
   section: FormSection;
   formId: string;
@@ -351,6 +374,8 @@ function SortableSection({
   onUpdateField: (fieldId: string, updates: Partial<FormField>) => void;
   editingField: { sectionId: string; fieldId: string } | null;
   setEditingField: (field: { sectionId: string; fieldId: string } | null) => void;
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useSortable({
     id: section.id,
@@ -396,6 +421,13 @@ function SortableSection({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">
           <GripVertical className="w-4 h-4 text-gray-500" />
+          <button
+            onClick={onToggleCollapse}
+            className="p-1 text-gray-500 hover:text-gray-700 transition-colors"
+            title={isCollapsed ? "Expand section" : "Collapse section"}
+          >
+            {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </button>
           {editingSectionTitle ? (
             <div className="flex items-center space-x-2">
               <input
@@ -462,7 +494,7 @@ function SortableSection({
           </button>
           <button 
             onClick={onDelete}
-            className="p-2 rounded-md bg-red-500 text-red-100 hover:bg-red-900 transition-colors"
+            className="p-2 rounded-md bg-red-500 text-red-100 hover:bg-red-700 transition-colors"
             title="Delete section"
           >
             <Trash2 className="w-4 h-4" />
@@ -474,37 +506,39 @@ function SortableSection({
         <p className="text-sm text-gray-600 mb-4">{section.subtitle}</p>
       )}
 
-      
-
-      <SortableContext
-        items={section.fields.map(f => f.id)}
-        strategy={verticalListSortingStrategy}
-      >
-        <div className="space-y-4">
-          {section.fields.map((field) => (
-            <SortableField
-              key={field.id}
-              field={field}
-              sectionId={section.id}
-              onDelete={() => onDeleteField(field.id)}
-              onUpdate={(updates) => onUpdateField(field.id, updates)}
-              editingField={editingField}
-              setEditingField={setEditingField}
-            />
-          ))}
-          
-                               {section.fields.length === 0 && (
-            <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
-              <Plus className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-              <p className="text-sm text-gray-600 mb-2">No fields in this section</p>
-              <p className="text-xs text-gray-500">Drag fields from the left panel to add them here</p>
+      {!isCollapsed && (
+        <>
+          <SortableContext
+            items={section.fields.map(f => f.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="grid grid-cols-3 gap-4">
+              {section.fields.map((field) => (
+                <SortableField
+                  key={field.id}
+                  field={field}
+                  sectionId={section.id}
+                  onDelete={() => onDeleteField(field.id)}
+                  onUpdate={(updates) => onUpdateField(field.id, updates)}
+                  editingField={editingField}
+                  setEditingField={setEditingField}
+                />
+              ))}
+              
+              {section.fields.length === 0 && (
+                <div className="col-span-3 text-center py-8 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+                  <Plus className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600 mb-2">No fields in this section</p>
+                  <p className="text-xs text-gray-500">Drag fields from the left panel to add them here</p>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      </SortableContext>
+          </SortableContext>
 
-      {/* Drop zone at the bottom of each section */}
-      <SectionDropZone sectionId={section.id} />
+          {/* Drop zone at the bottom of each section */}
+          <SectionDropZone sectionId={section.id} />
+        </>
+      )}
     </div>
   );
 }
@@ -574,13 +608,22 @@ function SortableField({
 
   const isEditing = editingField?.sectionId === sectionId && editingField?.fieldId === field.id;
 
+  const getGridSpan = () => {
+    switch (field.size) {
+      case '1x1': return 'col-span-1';
+      case '1x2': return 'col-span-2';
+      case '1x3': return 'col-span-3';
+      default: return 'col-span-1';
+    }
+  };
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       {...attributes}
       {...listeners}
-      className="p-4 border border-gray-200 rounded-md bg-gray-50 hover:bg-gray-100 transition-colors"
+      className={`p-4 border border-gray-200 rounded-md bg-gray-50 hover:bg-gray-100 transition-colors ${getGridSpan()}`}
     >
       {isEditing ? (
         <FieldEditor
@@ -600,9 +643,12 @@ function SortableField({
                  {field.label}
                  {field.required && <span className="text-red-500 ml-1">*</span>}
                </label>
-               <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                 {field.type}
-               </span>
+                               <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                  {field.type}
+                </span>
+                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                  {field.size}
+                </span>
              </div>
             {field.placeholder && (
               <p className="text-xs text-gray-500 mt-1">{field.placeholder}</p>
@@ -611,14 +657,14 @@ function SortableField({
                      <div className="flex items-center space-x-2">
              <button
                onClick={() => setEditingField({ sectionId, fieldId: field.id })}
-               className="p-1 text-gray-500 hover:text-gray-700 transition-colors"
+               className="p-1 rounded-md text-gray-700 hover:text-gray-100 bg-green-300 hover:bg-green-600 transition-colors"
                title="Edit field"
              >
                <Edit2 className="w-3 h-3" />
              </button>
              <button
                onClick={onDelete}
-               className="p-1 text-red-700 hover:text-red-900 transition-colors"
+               className="p-1 rounded-md text-red-700 bg-red-500 hover:bg-red-700 transition-colors"
                title="Delete field"
              >
                <Trash2 className="w-3 h-3" />
@@ -657,6 +703,7 @@ function FieldEditor({
     label: field.label,
     placeholder: field.placeholder || '',
     required: field.required,
+    size: field.size,
     options: field.options || []
   });
 
@@ -667,6 +714,7 @@ function FieldEditor({
       label: formData.label,
       placeholder: formData.placeholder,
       required: formData.required,
+      size: formData.size,
       options: formData.options
     });
   };
@@ -690,7 +738,7 @@ function FieldEditor({
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Label</label>
                      <input
@@ -708,6 +756,18 @@ function FieldEditor({
              onChange={(e) => setFormData(prev => ({ ...prev, placeholder: e.target.value }))}
              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
            />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Size</label>
+          <select
+            value={formData.size}
+            onChange={(e) => setFormData(prev => ({ ...prev, size: e.target.value as '1x1' | '1x2' | '1x3' }))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+          >
+            <option value="1x1">1 Column</option>
+            <option value="1x2">2 Columns</option>
+            <option value="1x3">3 Columns</option>
+          </select>
         </div>
       </div>
 

@@ -30,7 +30,7 @@ export default function Sidebar() {
         <div className="flex items-center space-x-2">
           <Scale className="h-6 w-6 text-orange-500" />
           <span className="text-lg font-semibold text-gray-900">
-            Matter Intake System
+            Form-Workflow-Creator
           </span>
         </div>
         <button className="ml-auto p-1 rounded-md hover:bg-gray-200">

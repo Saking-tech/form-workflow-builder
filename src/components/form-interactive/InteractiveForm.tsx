@@ -28,7 +28,7 @@ export default function InteractiveForm({ form, onSubmit, className = '' }: Inte
     }
 
     // Real-time validation for email fields
-    if (field.type === 'email' && value) {
+    if (field.type === 'email' && value && typeof value === 'string') {
       const validation = validateEmail(value);
       if (!validation.isValid) {
         setErrors(prev => ({ ...prev, [fieldId]: validation.error || 'Invalid email' }));
@@ -52,7 +52,7 @@ export default function InteractiveForm({ form, onSubmit, className = '' }: Inte
         }
 
         // Email validation
-        if (field.type === 'email' && value) {
+        if (field.type === 'email' && value && typeof value === 'string') {
           const validation = validateEmail(value);
           if (!validation.isValid) {
             newErrors[field.id] = validation.error || 'Invalid email';
@@ -61,7 +61,7 @@ export default function InteractiveForm({ form, onSubmit, className = '' }: Inte
         }
 
         // Number validation
-        if (field.type === 'number' && value) {
+        if (field.type === 'number' && value && typeof value === 'string') {
           const numValue = parseFloat(value);
           if (isNaN(numValue)) {
             newErrors[field.id] = 'Please enter a valid number';
@@ -78,7 +78,7 @@ export default function InteractiveForm({ form, onSubmit, className = '' }: Inte
         }
 
         // String length validation
-        if ((field.type === 'text' || field.type === 'textarea') && value) {
+        if ((field.type === 'text' || field.type === 'textarea') && value && typeof value === 'string') {
           if (field.validation?.minLength && value.length < field.validation.minLength) {
             newErrors[field.id] = `Must be at least ${field.validation.minLength} characters`;
             isValid = false;
@@ -102,222 +102,239 @@ export default function InteractiveForm({ form, onSubmit, className = '' }: Inte
     }
   };
 
+  const getGridSpan = (size: string) => {
+    switch (size) {
+      case '1x1': return 'col-span-1';
+      case '1x2': return 'col-span-2';
+      case '1x3': return 'col-span-3';
+      default: return 'col-span-1';
+    }
+  };
+
   const renderField = (field: FormField) => {
     const value = formData[field.id] || '';
     const error = errors[field.id];
 
-    switch (field.type) {
-      case 'text':
-      case 'email':
-      case 'number':
-        return (
-          <div key={field.id} className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              {field.label}
-              {field.required && <span className="text-red-500 ml-1">*</span>}
-            </label>
-            <input
-              type={field.type === 'email' ? 'email' : field.type === 'number' ? 'number' : 'text'}
-              value={value}
-              onChange={(e) => handleFieldChange(field.id, e.target.value, field)}
-              placeholder={field.placeholder}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                error ? 'border-red-500' : 'border-gray-300'
-              }`}
-            />
-            {error && (
-              <div className="flex items-center mt-1 text-red-600 text-sm">
-                <AlertCircle className="w-4 h-4 mr-1" />
-                {error}
-              </div>
-            )}
-          </div>
-        );
-
-      case 'textarea':
-        return (
-          <div key={field.id} className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              {field.label}
-              {field.required && <span className="text-red-500 ml-1">*</span>}
-            </label>
-            <textarea
-              value={value}
-              onChange={(e) => handleFieldChange(field.id, e.target.value, field)}
-              placeholder={field.placeholder}
-              rows={4}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                error ? 'border-red-500' : 'border-gray-300'
-              }`}
-            />
-            {error && (
-              <div className="flex items-center mt-1 text-red-600 text-sm">
-                <AlertCircle className="w-4 h-4 mr-1" />
-                {error}
-              </div>
-            )}
-          </div>
-        );
-
-      case 'dropdown':
-        return (
-          <div key={field.id} className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              {field.label}
-              {field.required && <span className="text-red-500 ml-1">*</span>}
-            </label>
-            <select 
-              value={value}
-              onChange={(e) => handleFieldChange(field.id, e.target.value, field)}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                error ? 'border-red-500' : 'border-gray-300'
-              }`}
-            >
-              <option value="">{field.placeholder || 'Select an option'}</option>
-              {field.options?.map((option, index) => (
-                <option key={index} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            {error && (
-              <div className="flex items-center mt-1 text-red-600 text-sm">
-                <AlertCircle className="w-4 h-4 mr-1" />
-                {error}
-              </div>
-            )}
-          </div>
-        );
-
-      case 'date':
-        return (
-          <div key={field.id} className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              {field.label}
-              {field.required && <span className="text-red-500 ml-1">*</span>}
-            </label>
-            <input
-              type="date"
-              value={value}
-              onChange={(e) => handleFieldChange(field.id, e.target.value, field)}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                error ? 'border-red-500' : 'border-gray-300'
-              }`}
-            />
-            {error && (
-              <div className="flex items-center mt-1 text-red-600 text-sm">
-                <AlertCircle className="w-4 h-4 mr-1" />
-                {error}
-              </div>
-            )}
-          </div>
-        );
-
-      case 'radio':
-        return (
-          <div key={field.id} className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              {field.label}
-              {field.required && <span className="text-red-500 ml-1">*</span>}
-            </label>
+    const fieldContent = (() => {
+      switch (field.type) {
+        case 'text':
+        case 'email':
+        case 'number':
+          return (
             <div className="space-y-2">
-              {field.options?.map((option, index) => (
-                <div key={index} className="flex items-center">
-                  <input
-                    type="radio"
-                    name={field.id}
-                    value={option.value}
-                    checked={value === option.value}
-                    onChange={(e) => handleFieldChange(field.id, e.target.value, field)}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                  />
-                  <label className="ml-2 block text-sm text-gray-700">
-                    {option.label}
-                  </label>
-                </div>
-              ))}
-            </div>
-            {error && (
-              <div className="flex items-center mt-1 text-red-600 text-sm">
-                <AlertCircle className="w-4 h-4 mr-1" />
-                {error}
-              </div>
-            )}
-          </div>
-        );
-
-      case 'checkbox':
-        return (
-          <div key={field.id} className="space-y-2">
-            <div className="flex items-start">
-              <input
-                type="checkbox"
-                checked={!!value}
-                onChange={(e) => handleFieldChange(field.id, e.target.checked, field)}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1"
-              />
-              <label className="ml-2 block text-sm text-gray-700">
-                {field.options?.[0]?.label || field.label}
+              <label className="block text-sm font-medium text-gray-700">
+                {field.label}
                 {field.required && <span className="text-red-500 ml-1">*</span>}
               </label>
+              <input
+                type={field.type === 'email' ? 'email' : field.type === 'number' ? 'number' : 'text'}
+                value={value as string}
+                onChange={(e) => handleFieldChange(field.id, e.target.value, field)}
+                placeholder={field.placeholder}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  error ? 'border-red-500' : 'border-gray-300'
+                }`}
+              />
+              {error && (
+                <div className="flex items-center mt-1 text-red-600 text-sm">
+                  <AlertCircle className="w-4 h-4 mr-1" />
+                  {error}
+                </div>
+              )}
             </div>
-            {error && (
-              <div className="flex items-center mt-1 text-red-600 text-sm">
-                <AlertCircle className="w-4 h-4 mr-1" />
-                {error}
-              </div>
-            )}
-          </div>
-        );
+          );
 
-      case 'file':
-        return (
-          <div key={field.id} className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              {field.label}
-              {field.required && <span className="text-red-500 ml-1">*</span>}
-            </label>
-            <input
-              type="file"
-              onChange={(e) => handleFieldChange(field.id, e.target.files?.[0] || null, field)}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                error ? 'border-red-500' : 'border-gray-300'
-              }`}
-            />
-            {error && (
-              <div className="flex items-center mt-1 text-red-600 text-sm">
-                <AlertCircle className="w-4 h-4 mr-1" />
-                {error}
-              </div>
-            )}
-          </div>
-        );
+        case 'textarea':
+          return (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                {field.label}
+                {field.required && <span className="text-red-500 ml-1">*</span>}
+              </label>
+              <textarea
+                value={value as string}
+                onChange={(e) => handleFieldChange(field.id, e.target.value, field)}
+                placeholder={field.placeholder}
+                rows={4}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  error ? 'border-red-500' : 'border-gray-300'
+                }`}
+              />
+              {error && (
+                <div className="flex items-center mt-1 text-red-600 text-sm">
+                  <AlertCircle className="w-4 h-4 mr-1" />
+                  {error}
+                </div>
+              )}
+            </div>
+          );
 
-      default:
-        return (
-          <div key={field.id} className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              {field.label}
-              {field.required && <span className="text-red-500 ml-1">*</span>}
-            </label>
-            <input
-              type="text"
-              value={value}
-              onChange={(e) => handleFieldChange(field.id, e.target.value, field)}
-              placeholder={field.placeholder}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                error ? 'border-red-500' : 'border-gray-300'
-              }`}
-            />
-            {error && (
-              <div className="flex items-center mt-1 text-red-600 text-sm">
-                <AlertCircle className="w-4 h-4 mr-1" />
-                {error}
+        case 'dropdown':
+          return (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                {field.label}
+                {field.required && <span className="text-red-500 ml-1">*</span>}
+              </label>
+              <select 
+                value={value as string}
+                onChange={(e) => handleFieldChange(field.id, e.target.value, field)}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  error ? 'border-red-500' : 'border-gray-300'
+                }`}
+              >
+                <option value="">{field.placeholder || 'Select an option'}</option>
+                {field.options?.map((option, index) => (
+                  <option key={index} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              {error && (
+                <div className="flex items-center mt-1 text-red-600 text-sm">
+                  <AlertCircle className="w-4 h-4 mr-1" />
+                  {error}
+                </div>
+              )}
+            </div>
+          );
+
+        case 'date':
+          return (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                {field.label}
+                {field.required && <span className="text-red-500 ml-1">*</span>}
+              </label>
+              <input
+                type="date"
+                value={value as string}
+                onChange={(e) => handleFieldChange(field.id, e.target.value, field)}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  error ? 'border-red-500' : 'border-gray-300'
+                }`}
+              />
+              {error && (
+                <div className="flex items-center mt-1 text-red-600 text-sm">
+                  <AlertCircle className="w-4 h-4 mr-1" />
+                  {error}
+                </div>
+              )}
+            </div>
+          );
+
+        case 'radio':
+          return (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                {field.label}
+                {field.required && <span className="text-red-500 ml-1">*</span>}
+              </label>
+              <div className="space-y-2">
+                {field.options?.map((option, index) => (
+                  <div key={index} className="flex items-center">
+                    <input
+                      type="radio"
+                      name={field.id}
+                      value={option.value}
+                      checked={value === option.value}
+                      onChange={(e) => handleFieldChange(field.id, e.target.value, field)}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                    />
+                    <label className="ml-2 block text-sm text-gray-700">
+                      {option.label}
+                    </label>
+                  </div>
+                ))}
               </div>
-            )}
-          </div>
-        );
-    }
+              {error && (
+                <div className="flex items-center mt-1 text-red-600 text-sm">
+                  <AlertCircle className="w-4 h-4 mr-1" />
+                  {error}
+                </div>
+              )}
+            </div>
+          );
+
+        case 'checkbox':
+          return (
+            <div className="space-y-2">
+              <div className="flex items-start">
+                <input
+                  type="checkbox"
+                  checked={!!value}
+                  onChange={(e) => handleFieldChange(field.id, e.target.checked, field)}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1"
+                />
+                <label className="ml-2 block text-sm text-gray-700">
+                  {field.options?.[0]?.label || field.label}
+                  {field.required && <span className="text-red-500 ml-1">*</span>}
+                </label>
+              </div>
+              {error && (
+                <div className="flex items-center mt-1 text-red-600 text-sm">
+                  <AlertCircle className="w-4 h-4 mr-1" />
+                  {error}
+                </div>
+              )}
+            </div>
+          );
+
+        case 'file':
+          return (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                {field.label}
+                {field.required && <span className="text-red-500 ml-1">*</span>}
+              </label>
+              <input
+                type="file"
+                onChange={(e) => handleFieldChange(field.id, e.target.files?.[0] || null, field)}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  error ? 'border-red-500' : 'border-gray-300'
+                }`}
+              />
+              {error && (
+                <div className="flex items-center mt-1 text-red-600 text-sm">
+                  <AlertCircle className="w-4 h-4 mr-1" />
+                  {error}
+                </div>
+              )}
+            </div>
+          );
+
+        default:
+          return (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                {field.label}
+                {field.required && <span className="text-red-500 ml-1">*</span>}
+              </label>
+              <input
+                type="text"
+                value={value as string}
+                onChange={(e) => handleFieldChange(field.id, e.target.value, field)}
+                placeholder={field.placeholder}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  error ? 'border-red-500' : 'border-gray-300'
+                }`}
+              />
+              {error && (
+                <div className="flex items-center mt-1 text-red-600 text-sm">
+                  <AlertCircle className="w-4 h-4 mr-1" />
+                  {error}
+                </div>
+              )}
+            </div>
+          );
+      }
+    })();
+
+    return (
+      <div key={field.id} className={`${getGridSpan(field.size)}`}>
+        {fieldContent}
+      </div>
+    );
   };
 
   return (
@@ -336,7 +353,7 @@ export default function InteractiveForm({ form, onSubmit, className = '' }: Inte
               <p className="text-sm text-gray-600 mb-4">{section.subtitle}</p>
             )}
             
-            <div className="space-y-4">
+            <div className="grid grid-cols-3 gap-4">
               {section.fields.map((field) => renderField(field))}
             </div>
           </div>
