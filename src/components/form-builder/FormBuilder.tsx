@@ -462,7 +462,7 @@ function SortableSection({
           </button>
           <button 
             onClick={onDelete}
-            className="p-2 rounded-md bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
+            className="p-2 rounded-md bg-red-500 text-red-100 hover:bg-red-900 transition-colors"
             title="Delete section"
           >
             <Trash2 className="w-4 h-4" />
