@@ -318,7 +318,7 @@ export default function WorkflowsPage() {
                 />
               </div>
               <p className="text-sm text-gray-600">
-                You'll be able to add forms and configure the workflow in the designer.
+                You&apos;ll be able to add forms and configure the workflow in the designer.
               </p>
             </div>
             <div className="flex items-center justify-end space-x-3 mt-6">

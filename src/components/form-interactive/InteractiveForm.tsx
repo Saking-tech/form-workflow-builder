@@ -7,7 +7,7 @@ import { AlertCircle } from 'lucide-react';
 
 interface InteractiveFormProps {
   form: Form;
-  onSubmit?: (data: Record<string, any>) => void;
+  onSubmit?: (data: Record<string, unknown>) => void;
   className?: string;
 }
 
@@ -16,10 +16,10 @@ interface FormErrors {
 }
 
 export default function InteractiveForm({ form, onSubmit, className = '' }: InteractiveFormProps) {
-  const [formData, setFormData] = useState<Record<string, any>>({});
+  const [formData, setFormData] = useState<Record<string, unknown>>({});
   const [errors, setErrors] = useState<FormErrors>({});
 
-  const handleFieldChange = (fieldId: string, value: any, field: FormField) => {
+  const handleFieldChange = (fieldId: string, value: unknown, field: FormField) => {
     setFormData(prev => ({ ...prev, [fieldId]: value }));
     
     // Clear existing error when user starts typing

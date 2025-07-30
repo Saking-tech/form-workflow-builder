@@ -1,6 +1,6 @@
 'use client';
 
-import { useDroppable } from '@dnd-kit/core';
+import { useDroppable, DragEndEvent } from '@dnd-kit/core';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useState } from 'react';
@@ -162,7 +162,7 @@ export default function FormCanvas({ formId }: FormCanvasProps) {
     id: 'form-canvas',
   });
 
-  const handleDragEnd = (event: any) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     
     if (over && over.id === 'form-canvas' && active.data?.current?.type) {
@@ -202,7 +202,9 @@ export default function FormCanvas({ formId }: FormCanvasProps) {
             ? 'border-blue-400 bg-blue-50' 
             : 'border-gray-300 bg-gray-50'
         }`}
-        onDrop={handleDragEnd}
+        onDrop={(e) => {
+          // Handle native drop event if needed
+        }}
       >
         {form.sections.length === 0 ? (
           <div className="text-center text-gray-500 py-8">

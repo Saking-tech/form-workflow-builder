@@ -925,7 +925,7 @@ export default function CreateRequestPage() {
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
               <span className="text-sm text-gray-700">
-                I confirm that I've read the full agreement and all information provided is accurate.
+                I confirm that I&apos;ve read the full agreement and all information provided is accurate.
               </span>
             </label>
                 {errors.confirmation && (

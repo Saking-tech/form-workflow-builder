@@ -5,7 +5,7 @@ export const colorScheme = colors.lightTheme;
 // Helper function to get color values
 export const getColor = (path: string): string => {
   const keys = path.split('.');
-  let value: any = colorScheme;
+  let value: unknown = colorScheme;
   
   for (const key of keys) {
     if (value && typeof value === 'object' && key in value) {

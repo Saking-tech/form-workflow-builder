@@ -1,7 +1,7 @@
 import { StateCreator } from 'zustand';
 
 // Helper function to convert date strings back to Date objects
-function reviveDates(obj: any): any {
+function reviveDates(obj: unknown): unknown {
   if (obj === null || typeof obj !== 'object') {
     return obj;
   }

@@ -29,7 +29,7 @@ export default function WorkflowExecution({ request, onComplete, onClose }: Work
   
   const workflow = workflows.find(w => w.id === request.workflowId);
   const [currentStepIndex, setCurrentStepIndex] = useState(request.currentStep);
-  const [executionData, setExecutionData] = useState<Record<string, any>>(request.formData || {});
+  const [executionData, setExecutionData] = useState<Record<string, unknown>>(request.formData || {});
   const [isExecuting, setIsExecuting] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
 
@@ -44,7 +44,7 @@ export default function WorkflowExecution({ request, onComplete, onClose }: Work
     });
   }, [currentStepIndex, executionData, request.id, updateRequest]);
 
-  const handleStepComplete = (stepData: any) => {
+  const handleStepComplete = (stepData: Record<string, unknown>) => {
     const stepId = currentStep?.id;
     if (!stepId) return;
 
@@ -217,14 +217,14 @@ export default function WorkflowExecution({ request, onComplete, onClose }: Work
 
 // Form Execution Component
 interface FormExecutionProps {
-  form: any;
-  initialData: any;
-  onComplete: (data: any) => void;
+  form: Record<string, unknown>;
+  initialData: Record<string, unknown>;
+  onComplete: (data: Record<string, unknown>) => void;
   onSkip: () => void;
 }
 
 function FormExecution({ form, initialData, onComplete, onSkip }: FormExecutionProps) {
-  const [formData, setFormData] = useState(initialData);
+  const [formData, setFormData] = useState<Record<string, any>>(initialData);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -248,7 +248,7 @@ function FormExecution({ form, initialData, onComplete, onSkip }: FormExecutionP
     onComplete(formData);
   };
 
-  const handleFieldChange = (fieldId: string, value: any) => {
+  const handleFieldChange = (fieldId: string, value: unknown) => {
     setFormData(prev => ({ ...prev, [fieldId]: value }));
     if (errors[fieldId]) {
       setErrors(prev => ({ ...prev, [fieldId]: '' }));
@@ -257,7 +257,7 @@ function FormExecution({ form, initialData, onComplete, onSkip }: FormExecutionP
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {form.sections.map((section: any) => (
+      {form.sections.map((section: Record<string, unknown>) => (
         <div key={section.id} className="bg-white border border-gray-200 rounded-lg p-6">
           <h4 className="text-lg font-semibold text-gray-900 mb-4">{section.title}</h4>
           {section.subtitle && (
@@ -265,7 +265,7 @@ function FormExecution({ form, initialData, onComplete, onSkip }: FormExecutionP
           )}
           
           <div className="space-y-4">
-            {section.fields.map((field: any) => (
+            {section.fields.map((field: Record<string, unknown>) => (
               <div key={field.id}>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   {field.label}
@@ -396,7 +396,7 @@ function FormExecution({ form, initialData, onComplete, onSkip }: FormExecutionP
 // Decision Execution Component
 interface DecisionExecutionProps {
   node: WorkflowNode;
-  onComplete: (data: any) => void;
+  onComplete: (data: Record<string, unknown>) => void;
   onSkip: () => void;
 }
 

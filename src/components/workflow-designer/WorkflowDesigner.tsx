@@ -137,9 +137,9 @@ export default function WorkflowDesigner({ workflow, onSave }: WorkflowDesignerP
       description: workflow?.description || '',
       nodes: nodes.map(node => ({
         id: node.id,
-        formId: (node.data as any).formId || '',
+        formId: (node.data as Record<string, unknown>).formId as string || '',
         position: node.position,
-        status: (node.data as any).status || 'pending'
+        status: (node.data as Record<string, unknown>).status as string || 'pending'
       })),
       connections: edges.map(edge => ({
         from: edge.source,

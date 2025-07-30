@@ -7,7 +7,7 @@ interface FormNodeProps {
   data: {
     formId: string;
     label: string;
-    form?: any;
+    form?: Record<string, unknown>;
   };
 }
 
