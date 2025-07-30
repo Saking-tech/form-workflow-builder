@@ -360,9 +360,26 @@ function SortableSection({
     }
   });
 
+  const [editingSectionTitle, setEditingSectionTitle] = useState(false);
+  const [sectionTitle, setSectionTitle] = useState(section.title);
+
   const style = {
     transform: CSS.Transform.toString(transform),
     opacity: isDragging ? 0.5 : 1,
+  };
+
+  const handleTitleEdit = () => {
+    setEditingSectionTitle(true);
+  };
+
+  const handleTitleSave = () => {
+    onTitleChange(sectionTitle);
+    setEditingSectionTitle(false);
+  };
+
+  const handleTitleCancel = () => {
+    setSectionTitle(section.title);
+    setEditingSectionTitle(false);
   };
 
   return (
@@ -377,13 +394,61 @@ function SortableSection({
       data-droppable="true"
     >
       <div className="flex items-center justify-between mb-4">
-                 <div className="flex items-center space-x-2">
-           <GripVertical className="w-4 h-4 text-gray-500" />
-           <h3 className="text-lg font-semibold text-gray-900 cursor-pointer hover:text-blue-600">
-             {section.title}
-           </h3>
-         </div>
         <div className="flex items-center space-x-2">
+          <GripVertical className="w-4 h-4 text-gray-500" />
+          {editingSectionTitle ? (
+            <div className="flex items-center space-x-2">
+              <input
+                type="text"
+                value={sectionTitle}
+                onChange={(e) => setSectionTitle(e.target.value)}
+                className="text-lg font-semibold text-gray-900 border border-blue-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleTitleSave();
+                  } else if (e.key === 'Escape') {
+                    handleTitleCancel();
+                  }
+                }}
+              />
+              <button
+                onClick={handleTitleSave}
+                className="p-1 text-green-600 hover:text-green-700"
+                title="Save title"
+              >
+                <Check className="w-4 h-4" />
+              </button>
+              <button
+                onClick={handleTitleCancel}
+                className="p-1 text-red-600 hover:text-red-700"
+                title="Cancel editing"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <h3 
+              className="text-lg font-semibold text-gray-900 cursor-pointer hover:text-blue-600"
+              onClick={handleTitleEdit}
+              title="Click to edit section title"
+            >
+              {section.title}
+            </h3>
+          )}
+        </div>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={handleTitleEdit}
+            className={`p-2 rounded-md transition-colors ${
+              isActive 
+                ? 'bg-blue-100 text-blue-600' 
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+            title="Edit section title"
+          >
+            <Edit2 className="w-4 h-4" />
+          </button>
           <button
             onClick={onActivate}
             className={`p-2 rounded-md transition-colors ${
