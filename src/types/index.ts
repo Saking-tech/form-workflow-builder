@@ -65,7 +65,7 @@ export interface Request {
   id: string;
   title: string;
   workflowId: string;
-  status: 'pending' | 'in-progress' | 'completed' | 'cancelled';
+  status: 'pending' | 'in-progress' | 'completed' | 'cancelled' | 'incomplete';
   currentStep: number;
   formData: Record<string, unknown>;
   createdAt: Date;

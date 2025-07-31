@@ -9,14 +9,15 @@ interface InteractiveFormProps {
   form: Form;
   onSubmit?: (data: Record<string, unknown>) => void;
   className?: string;
+  initialData?: Record<string, unknown> | null;
 }
 
 interface FormErrors {
   [fieldId: string]: string;
 }
 
-export default function InteractiveForm({ form, onSubmit, className = '' }: InteractiveFormProps) {
-  const [formData, setFormData] = useState<Record<string, unknown>>({});
+export default function InteractiveForm({ form, onSubmit, className = '', initialData }: InteractiveFormProps) {
+  const [formData, setFormData] = useState<Record<string, unknown>>(initialData || {});
   const [errors, setErrors] = useState<FormErrors>({});
 
   const handleFieldChange = (fieldId: string, value: unknown, field: FormField) => {

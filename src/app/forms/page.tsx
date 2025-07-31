@@ -98,7 +98,7 @@ export default function FormsPage() {
       <div className="h-full flex flex-col">
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div>
-            <p className="text-2xl font-bold text-gray-900">Form Builder</p>
+            {/* <p className="text-2xl font-bold text-gray-900">Form Builder</p> */}
             <p className="text-gray-600">Design your form with drag-and-drop sections</p>
           </div>
           <div className="flex items-center space-x-3">
@@ -151,7 +151,7 @@ export default function FormsPage() {
       {/* Forms List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {forms && forms.length > 0 ? forms.map((form) => (
-          <div key={form.id} className="bg-white/70 backdrop-blur-sm border border-gray-200/50 rounded-xl p-6 hover:bg-white/80 hover:shadow-lg transition-all duration-200">
+          <div key={form.id} className="bg-gradient-to-r from-blue-200 to-indigo-100 rounded-2xl p-6 hover:bg-white/80 hover:shadow-lg transition-all duration-200">
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-gray-900">{form.name}</h3>
@@ -162,21 +162,21 @@ export default function FormsPage() {
               <div className="flex items-center space-x-1">
                 <button 
                   onClick={() => handleEditForm(form)}
-                  className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
+                  className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
                   title="Edit form details"
                 >
                   <Edit3 className="w-4 h-4" />
                 </button>
                 <button 
                   onClick={() => handleDuplicateForm(form)}
-                  className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200"
+                  className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200"
                   title="Duplicate form"
                 >
                   <Copy className="w-4 h-4" />
                 </button>
                 <button 
                   onClick={() => setShowDeleteModal(form.id)}
-                  className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
+                  className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
                   title="Delete form"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -184,7 +184,7 @@ export default function FormsPage() {
               </div>
             </div>
             
-            <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+            <div className="flex items-center justify-between text-sm text-gray-700 mb-4">
               <span>{form.sections.length} sections</span>
               <span>{form.sections.reduce((total, section) => total + section.fields.length, 0)} fields</span>
             </div>
@@ -235,7 +235,7 @@ export default function FormsPage() {
       {/* Create Form Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white/95 backdrop-blur-md border border-gray-200/50 rounded-2xl shadow-2xl w-full max-w-md">
+          <div className="bg-gradient-to-r from-blue-200 to-indigo-100 border border-gray-200/50 rounded-2xl shadow-2xl w-full max-w-md">
             <div className="px-6 py-4 border-b border-gray-200/50">
               <h2 className="text-xl font-semibold text-gray-900">Create New Form</h2>
               <p className="text-sm text-gray-600 mt-1">Start building your custom form</p>

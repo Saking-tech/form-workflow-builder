@@ -17,7 +17,11 @@ export default function StartNode({ data }: StartNodeProps) {
         <div className="font-bold text-sm">{data.label}</div>
       </div>
       
-      <Handle type="source" position={Position.Bottom} className="w-3 h-3" />
+      {/* Connection handles on all four sides */}
+      <Handle id="source-top" type="source" position={Position.Top} className="w-3 h-3 !bg-green-500" />
+      <Handle id="source-right" type="source" position={Position.Right} className="w-3 h-3 !bg-green-500" />
+      <Handle id="source-bottom" type="source" position={Position.Bottom} className="w-3 h-3 !bg-green-500" />
+      <Handle id="source-left" type="source" position={Position.Left} className="w-3 h-3 !bg-green-500" />
     </div>
   );
 }

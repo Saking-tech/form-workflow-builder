@@ -1,3 +1,5 @@
+'use client';
+
 import { Handle, Position } from '@xyflow/react';
 import { Diamond } from 'lucide-react';
 
@@ -22,7 +24,11 @@ export default function DecisionNode({ data }: DecisionNodeProps) {
 
   return (
     <div className={`px-4 py-2 border-2 rounded-lg ${getStatusColor(data.status)}`}>
-      <Handle type="target" position={Position.Top} />
+      {/* Connection handles on all four sides */}
+      <Handle id="target-top" type="target" position={Position.Top} className="w-3 h-3 !bg-yellow-500" />
+      <Handle id="target-right" type="target" position={Position.Right} className="w-3 h-3 !bg-yellow-500" />
+      <Handle id="target-bottom" type="target" position={Position.Bottom} className="w-3 h-3 !bg-yellow-500" />
+      <Handle id="target-left" type="target" position={Position.Left} className="w-3 h-3 !bg-yellow-500" />
       
       <div className="flex items-center space-x-2">
         <Diamond className="h-5 w-5 text-yellow-600" />
@@ -32,8 +38,10 @@ export default function DecisionNode({ data }: DecisionNodeProps) {
         </div>
       </div>
       
-      <Handle type="source" position={Position.Bottom} />
-      <Handle type="source" position={Position.Right} />
+      <Handle id="source-top" type="source" position={Position.Top} className="w-3 h-3 !bg-yellow-500" />
+      <Handle id="source-right" type="source" position={Position.Right} className="w-3 h-3 !bg-yellow-500" />
+      <Handle id="source-bottom" type="source" position={Position.Bottom} className="w-3 h-3 !bg-yellow-500" />
+      <Handle id="source-left" type="source" position={Position.Left} className="w-3 h-3 !bg-yellow-500" />
     </div>
   );
 }

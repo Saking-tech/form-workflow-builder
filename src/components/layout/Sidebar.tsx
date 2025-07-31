@@ -17,8 +17,8 @@ import {
 } from 'lucide-react';
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'My Requests', href: '/requests', icon: FileText },
+  { name: 'Creator Resource', href: '/', icon: LayoutDashboard },
+  { name: 'Execute Workflow', href: '/requests', icon: FileText },
   { name: 'Forms', href: '/forms', icon: Settings },
   { name: 'Workflows', href: '/workflows', icon: Workflow },
 ];

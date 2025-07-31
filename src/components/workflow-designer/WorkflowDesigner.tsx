@@ -50,16 +50,32 @@ export default function WorkflowDesigner({ workflow, onSave }: WorkflowDesignerP
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; type: 'node' | 'edge'; id: string } | null>(null);
 
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>(
-    workflow?.nodes.map(node => ({
-      id: node.id,
-      type: node.formId ? 'formNode' : 'startNode',
-      position: node.position,
-      data: {
-        formId: node.formId,
-        label: node.formId ? forms.find(f => f.id === node.formId)?.name : 'Start',
-        status: node.status
+    workflow?.nodes.map(node => {
+      // Determine node type based on formId and other properties
+      let nodeType = 'formNode';
+      let label = 'Form';
+      
+      if (!node.formId) {
+        // If no formId, it could be start, end, or decision node
+        // For now, default to startNode, but we should extend the WorkflowNode interface
+        nodeType = 'startNode';
+        label = 'Start';
+      } else {
+        const form = forms.find(f => f.id === node.formId);
+        label = form?.name || 'Form';
       }
-    })) || []
+      
+      return {
+        id: node.id,
+        type: nodeType,
+        position: node.position,
+        data: {
+          formId: node.formId,
+          label: label,
+          status: node.status
+        }
+      };
+    }) || []
   );
   
   const [edges, setEdges, onEdgesChange] = useEdgesState(
@@ -67,7 +83,8 @@ export default function WorkflowDesigner({ workflow, onSave }: WorkflowDesignerP
       id: `${conn.from}-${conn.to}`,
       source: conn.from,
       target: conn.to,
-      type: 'smoothstep'
+      type: 'smoothstep',
+      style: { stroke: '#3b82f6', strokeWidth: 2 }
     })) || []
   );
 
@@ -81,7 +98,11 @@ export default function WorkflowDesigner({ workflow, onSave }: WorkflowDesignerP
   }, [setEdges]);
 
   const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
+    (params: Connection) => setEdges((eds) => addEdge({
+      ...params,
+      type: 'smoothstep',
+      style: { stroke: '#3b82f6', strokeWidth: 2 }
+    }, eds)),
     [setEdges]
   );
 
@@ -113,6 +134,51 @@ export default function WorkflowDesigner({ workflow, onSave }: WorkflowDesignerP
 
     setNodes((nds) => [...nds, reactFlowNode]);
     setShowFormModal(false);
+  };
+
+  const addStartNode = () => {
+    const reactFlowNode: Node = {
+      id: generateId(),
+      type: 'startNode',
+      position: { x: 250, y: 100 + nodes.length * 100 },
+      data: {
+        formId: '',
+        label: 'Start',
+        status: 'pending'
+      }
+    };
+
+    setNodes((nds) => [...nds, reactFlowNode]);
+  };
+
+  const addEndNode = () => {
+    const reactFlowNode: Node = {
+      id: generateId(),
+      type: 'endNode',
+      position: { x: 250, y: 100 + nodes.length * 100 },
+      data: {
+        formId: '',
+        label: 'End',
+        status: 'pending'
+      }
+    };
+
+    setNodes((nds) => [...nds, reactFlowNode]);
+  };
+
+  const addDecisionNode = () => {
+    const reactFlowNode: Node = {
+      id: generateId(),
+      type: 'decisionNode',
+      position: { x: 250, y: 100 + nodes.length * 100 },
+      data: {
+        formId: '',
+        label: 'Decision',
+        status: 'pending'
+      }
+    };
+
+    setNodes((nds) => [...nds, reactFlowNode]);
   };
 
 
@@ -282,20 +348,6 @@ export default function WorkflowDesigner({ workflow, onSave }: WorkflowDesignerP
             <Plus className="w-4 h-4 mr-2" />
             Add Form
           </button>
-          {/* <button
-            onClick={addStartNode}
-            className="flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Start
-          </button> */}
-          {/* <button
-            onClick={addEndNode}
-            className="flex items-center px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add End
-          </button> */}
           <button
             onClick={saveWorkflow}
             className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"

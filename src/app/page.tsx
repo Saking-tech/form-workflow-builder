@@ -16,11 +16,11 @@ export default function Dashboard() {
   return (
     <div className="p-4 md:p-6 space-y-4 md:space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl md:text-2xl font-bold text-gray-900">Dashboard</h1>
+        <h1 className="text-xl md:text-2xl font-bold text-gray-900">Creator Table</h1>
       </div>
 
       {/* Creator Tabs */}
-      <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-200/50">
+      <div className="bg-gradient-to-r from-blue-100 to-indigo-100 rounded-2xl shadow-sm border border-gray-200/50">
         <div className="border-b border-gray-100">
           <nav className="flex space-x-4 md:space-x-8 px-4 md:px-6 overflow-x-auto">
             <button
@@ -96,7 +96,7 @@ function FormCreatorSection() {
 
   return (
     <div className="space-y-4 md:space-y-6">
-      <div>
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 md:p-6 border border-gray-200/50">
         <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Form Creator</h2>
         <p className="text-sm md:text-base text-gray-600">Create and manage your form templates</p>
       </div>
@@ -171,7 +171,7 @@ function WorkflowCreatorSection() {
 
   return (
     <div className="space-y-4 md:space-y-6">
-      <div>
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 md:p-6 border border-gray-200/50">
         <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Workflow Creator</h2>
         <p className="text-sm md:text-base text-gray-600">Design and manage your workflow processes</p>
       </div>

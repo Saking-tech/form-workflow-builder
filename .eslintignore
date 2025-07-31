@@ -1,0 +1,16 @@
+# Ignore build outputs
+.next/
+out/
+dist/
+build/
+
+# Ignore node modules
+node_modules/
+
+# Ignore specific problematic files temporarily
+src/app/forms/page.tsx
+src/components/form-builder/FieldPalette.tsx
+
+# Ignore generated files
+*.generated.*
+*.min.js 

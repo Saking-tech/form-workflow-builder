@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "lint:dev": "eslint --config eslint.config.dev.mjs src/**/*.{ts,tsx}",
+    "lint:fix": "eslint --config eslint.config.dev.mjs src/**/*.{ts,tsx} --fix"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

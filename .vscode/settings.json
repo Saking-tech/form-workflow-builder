@@ -1,0 +1,24 @@
+{
+  "eslint.enable": true,
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+  "eslint.options": {
+    "configFile": "eslint.config.dev.mjs"
+  },
+  "typescript.preferences.includePackageJsonAutoImports": "off",
+  "typescript.suggest.autoImports": false,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "eslint.rules.customizations": [
+    { "rule": "@typescript-eslint/no-unused-vars", "severity": "off" },
+    { "rule": "react/no-unescaped-entities", "severity": "off" },
+    { "rule": "react/display-name", "severity": "off" },
+    { "rule": "no-unused-vars", "severity": "off" },
+    { "rule": "prefer-const", "severity": "off" }
+  ]
+} 

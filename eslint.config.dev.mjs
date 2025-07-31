@@ -13,14 +13,20 @@ const eslintConfig = [
   ...compat.extends("next/core-web-vitals"),
   {
     rules: {
-      // Disable all problematic rules that cause persistent errors
+      // Disable all problematic rules for development
       "@typescript-eslint/no-unused-vars": "off",
       "@typescript-eslint/no-explicit-any": "off",
-      "@typescript-eslint/no-empty-function": "off",
-      "@typescript-eslint/ban-ts-comment": "off",
       "react/no-unescaped-entities": "off",
       "react/display-name": "off",
       "react/jsx-filename-extension": "off",
+      "prefer-const": "off",
+      "no-unused-vars": "off",
+      "no-console": "off",
+      "@next/next/no-img-element": "off",
+      "react-hooks/exhaustive-deps": "off",
+      "@typescript-eslint/no-empty-function": "off",
+      "@typescript-eslint/ban-ts-comment": "off",
+      "react/no-unknown-property": "off",
       "react/jsx-key": "warn",
       "react/jsx-no-target-blank": "off",
       "react/no-array-index-key": "off",
@@ -47,37 +53,7 @@ const eslintConfig = [
       "react/jsx-tag-spacing": "off",
       "react/jsx-uses-react": "off",
       "react/jsx-uses-vars": "off",
-      "react/jsx-wrap-multilines": "off",
-      "react/no-unknown-property": "off",
-      "react-hooks/exhaustive-deps": "off",
-      "prefer-const": "off",
-      "no-unused-vars": "off",
-      "no-console": "off",
-      "@next/next/no-img-element": "off",
-      "no-undef": "off",
-      "no-redeclare": "off",
-      "no-var": "off",
-      "prefer-arrow-callback": "off",
-      "object-shorthand": "off",
-      "prefer-template": "off",
-      "prefer-destructuring": "off",
-      "no-useless-escape": "off",
-      "no-useless-concat": "off",
-      "no-useless-return": "off",
-      "no-useless-constructor": "off",
-      "no-useless-rename": "off",
-      "no-useless-catch": "off",
-      "no-useless-computed-key": "off",
-      "no-useless-else": "off",
-      "no-useless-call": "off",
-      "no-useless-backreference": "off",
-      "no-useless-constructor": "off",
-      "no-useless-rename": "off",
-      "no-useless-catch": "off",
-      "no-useless-computed-key": "off",
-      "no-useless-else": "off",
-      "no-useless-call": "off",
-      "no-useless-backreference": "off"
+      "react/jsx-wrap-multilines": "off"
     },
     parserOptions: {
       ecmaVersion: 2020,
@@ -94,4 +70,4 @@ const eslintConfig = [
   },
 ];
 
-export default eslintConfig;
+export default eslintConfig; 

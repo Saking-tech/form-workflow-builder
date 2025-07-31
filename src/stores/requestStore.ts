@@ -10,12 +10,14 @@ interface RequestStore {
   deleteRequest: (id: string) => void;
   setCurrentRequest: (request: Request | null) => void;
   updateRequestProgress: (id: string, step: number, formData: Record<string, unknown>) => void;
+  saveStepData: (id: string, stepId: string, stepData: Record<string, unknown>) => void;
   completeRequest: (id: string) => void;
   resetRequest: (id: string) => void;
+  getStepData: (id: string, stepId: string) => Record<string, unknown> | null;
 }
 
 export const useRequestStore = create<RequestStore>(
-  persistStore<RequestStore>('requestStore', (set) => ({
+  persistStore<RequestStore>('requestStore', (set, get) => ({
   requests: [],
   currentRequest: null,
   
@@ -47,6 +49,32 @@ export const useRequestStore = create<RequestStore>(
         : request
     )
   })),
+  
+  saveStepData: (id, stepId, stepData) => set((state) => ({
+    requests: state.requests.map(request => 
+      request.id === id 
+        ? { 
+            ...request, 
+            formData: { 
+              ...request.formData, 
+              [stepId]: stepData,
+              stepData: {
+                ...(request.formData?.stepData as Record<string, unknown> || {}),
+                [stepId]: stepData
+              }
+            },
+            updatedAt: new Date()
+          }
+        : request
+    )
+  })),
+  
+  getStepData: (id, stepId) => {
+    const state = get();
+    const request = state.requests.find(r => r.id === id);
+    if (!request) return null;
+    return request.formData?.stepData?.[stepId] || request.formData?.[stepId] || null;
+  },
   
   completeRequest: (id) => set((state) => ({
     requests: state.requests.map(request => 
