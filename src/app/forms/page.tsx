@@ -104,13 +104,13 @@ export default function FormsPage() {
           <div className="flex items-center space-x-3">
             <button
               onClick={() => setCurrentForm(null)}
-              className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+              className="px-4 py-2 bg-white text-gray-600 rounded-xl hover:bg-gray-200 border border-gray-400"
             >
               Back to Forms
             </button>
             <button 
               onClick={handleSaveForm}
-              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-500 text-white rounded-md hover:bg-blue-900 hover:from-blue-800 hover:to-indigo-600"
+              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-500 text-white rounded-xl hover:bg-blue-900 hover:from-blue-800 hover:to-indigo-600"
             >
               Save Form
             </button>

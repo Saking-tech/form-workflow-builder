@@ -278,8 +278,8 @@ export default function FormBuilder({ form, onFormChange }: FormBuilderProps) {
       <div className="flex h-full">
         {/* Field Palette */}
         <div className="w-64 bg-gray-50 border-r border-gray-200 p-4">
-          <h3 className="font-semibold text-gray-900 mb-4">Form Fields</h3>
-          <p className="text-sm text-gray-600 mb-4">Drag fields to add them to sections</p>
+          <h3 className="font-semibold text-xl text-gray-900 mb-4">Form Fields</h3>
+          <p className="text-sm text-gray-400 mb-4">Drag fields to add them to sections</p>
           
 
 
@@ -304,7 +304,7 @@ export default function FormBuilder({ form, onFormChange }: FormBuilderProps) {
               </div>
               <button
                 onClick={addNewSection}
-                className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                className="flex items-center px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-500 text-white rounded-xl hover:bg-blue-800 hover:shadow-lg transition-all"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Add Section
@@ -393,7 +393,7 @@ function DraggableFieldType({ fieldType }: { fieldType: typeof FIELD_TYPES[0] })
       style={style}
       {...attributes}
       {...listeners}
-      className="p-3 bg-gradient-to-r from-blue-100 to-indigo-100 border border-gray-200 rounded-md cursor-move hover:border-blue-400 hover:bg-blue-200 hover:shadow-sm transition-all"
+      className="p-3 bg-gradient-to-r from-blue-100 to-indigo-100 border border-gray-200 rounded-lg cursor-move hover:border-blue-400 hover:bg-blue-200 hover:shadow-sm transition-all"
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center">
@@ -720,9 +720,9 @@ function SortableField({
                   {field.label}
                   {field.required && <span className="text-red-500 ml-1">*</span>}
                 </label>
-                <span className="text-xs bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 px-2 py-1 rounded-lg">
+                {/* <span className="text-xs bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 px-2 py-1 rounded-lg">
                   {field.type}
-                </span>
+                </span> */}
                 <span className="text-xs bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 px-2 py-1 rounded-lg">
                   {field.size}
                 </span>

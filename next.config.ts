@@ -2,15 +2,13 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   eslint: {
-    // Disable ESLint during builds to prevent deployment failures
-    ignoreDuringBuilds: true,
+    // Enable ESLint during builds to catch errors
+    ignoreDuringBuilds: false,
   },
   typescript: {
-    // Disable TypeScript errors during builds
-    ignoreBuildErrors: true,
+    // Enable TypeScript errors during builds
+    ignoreBuildErrors: false,
   },
-  // Remove standalone output to fix build issues
-  // output: 'standalone',
   // Enable experimental features for better performance
   experimental: {
     optimizePackageImports: ['lucide-react'],
