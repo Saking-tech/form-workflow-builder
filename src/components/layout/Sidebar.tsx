@@ -76,7 +76,7 @@ export default function Sidebar() {
         "md:block md:translate-x-0",
         isCollapsed ? "w-16" : "w-64"
       )}>
-        <div className="h-full bg-white/80 backdrop-blur-sm border-r border-gray-200/50 shadow-sm">
+        <div className="h-full bg-gradient-to-r from-blue-100 to-indigo-100  backdrop-blur-sm border-r border-gray-200/50 shadow-sm">
           {/* Header */}
           <div className="flex h-16 items-center px-4 border-b border-gray-100">
             <div className="flex items-center space-x-3">
