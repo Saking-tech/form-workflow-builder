@@ -308,23 +308,33 @@ export default function RequestsPage() {
         </div>
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {workflows.map((workflow) => (
-              <div key={workflow.id} className="border border-gray-200 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-medium text-gray-900">{workflow.name}</h3>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    workflow.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                  }`}>
-                    {workflow.status}
-                  </span>
+            {workflows && workflows.length > 0 ? (
+              workflows.map((workflow) => (
+                <div key={workflow.id} className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-medium text-gray-900">{workflow.name}</h3>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      workflow.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                    }`}>
+                      {workflow.status}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">{workflow.description}</p>
+                  <div className="flex items-center justify-between text-sm text-gray-500">
+                    <span>{workflow.nodes.length} steps</span>
+                    <span>{formatDate(workflow.createdAt)}</span>
+                  </div>
                 </div>
-                <p className="text-sm text-gray-600 mb-3">{workflow.description}</p>
-                <div className="flex items-center justify-between text-sm text-gray-500">
-                  <span>{workflow.nodes.length} steps</span>
-                  <span>{formatDate(workflow.createdAt)}</span>
-                </div>
+              ))
+            ) : (
+              <div className="col-span-full text-center py-8">
+                <FileText className="mx-auto h-12 w-12 text-gray-500" />
+                <h3 className="mt-2 text-sm font-medium text-gray-900">No workflow templates</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Create workflows to see them here.
+                </p>
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>

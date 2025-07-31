@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ReactFlow,
@@ -13,7 +13,9 @@ import {
   Controls,
   Background,
   MiniMap,
-  Panel
+  Panel,
+  NodeMouseHandler,
+  EdgeMouseHandler
 } from '@xyflow/react';
 import { useFormStore } from '@/stores/formStore';
 import { useWorkflowStore } from '@/stores/workflowStore';
@@ -44,7 +46,9 @@ export default function WorkflowDesigner({ workflow, onSave }: WorkflowDesignerP
   const { addWorkflow, updateWorkflow } = useWorkflowStore();
   const { addRequest } = useRequestStore();
   const [showFormModal, setShowFormModal] = useState(false);
-  
+  const [selectedElements, setSelectedElements] = useState<{ nodes: string[]; edges: string[] }>({ nodes: [], edges: [] });
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; type: 'node' | 'edge'; id: string } | null>(null);
+
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>(
     workflow?.nodes.map(node => ({
       id: node.id,
@@ -66,6 +70,15 @@ export default function WorkflowDesigner({ workflow, onSave }: WorkflowDesignerP
       type: 'smoothstep'
     })) || []
   );
+
+  // Edge editing handler
+  const onEdgeDoubleClick = useCallback((event: React.MouseEvent, edge: Edge) => {
+    event.stopPropagation();
+    const newLabel = prompt('Edit connection label:', edge.label?.toString() || '');
+    if (newLabel !== null) {
+      setEdges(eds => eds.map(e => e.id === edge.id ? { ...e, label: newLabel } : e));
+    }
+  }, [setEdges]);
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
@@ -139,7 +152,7 @@ export default function WorkflowDesigner({ workflow, onSave }: WorkflowDesignerP
         id: node.id,
         formId: (node.data as Record<string, unknown>).formId as string || '',
         position: node.position,
-        status: (node.data as Record<string, unknown>).status as string || 'pending'
+        status: ((node.data as Record<string, unknown>).status as 'active' | 'completed' | 'pending') || 'pending'
       })),
       connections: edges.map(edge => ({
         from: edge.source,
@@ -192,6 +205,93 @@ export default function WorkflowDesigner({ workflow, onSave }: WorkflowDesignerP
 
     console.log('Created request:', newRequest);
   };
+
+  // Selection change handler
+  const onSelectionChange = useCallback((params: { nodes: Node[]; edges: Edge[] }) => {
+    setSelectedElements({
+      nodes: params.nodes?.map((n) => n.id) || [],
+      edges: params.edges?.map((e) => e.id) || [],
+    });
+  }, []);
+
+  // Keyboard delete handler
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    // Don't handle if the target is any form element or contentEditable
+    const target = e.target as HTMLElement;
+    
+    // Check if target is any form element
+    const isFormElement = target.tagName === 'INPUT' || 
+                         target.tagName === 'TEXTAREA' || 
+                         target.tagName === 'SELECT' || 
+                         target.contentEditable === 'true' ||
+                         target.closest('input') ||
+                         target.closest('textarea') ||
+                         target.closest('select') ||
+                         target.closest('[contenteditable="true"]') ||
+                         target.closest('form') ||
+                         target.closest('.form-builder') ||
+                         target.closest('.field-editor');
+    
+    if (isFormElement) {
+      return;
+    }
+    
+    // Check if any input field is currently focused
+    const activeElement = document.activeElement as HTMLElement;
+    if (activeElement && (
+      activeElement.tagName === 'INPUT' || 
+      activeElement.tagName === 'TEXTAREA' || 
+      activeElement.tagName === 'SELECT' ||
+      activeElement.contentEditable === 'true'
+    )) {
+      return;
+    }
+    
+    // Only handle Delete/Backspace when ReactFlow canvas is focused and active
+    const reactFlowElement = document.querySelector('.react-flow');
+    if (!reactFlowElement?.contains(target)) {
+      return;
+    }
+    
+    // Additional check: ensure we're not in any modal or overlay
+    const isInModal = target.closest('.modal') || 
+                     target.closest('[role="dialog"]') ||
+                     target.closest('.fixed');
+    if (isInModal) {
+      return;
+    }
+    
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+      setNodes(nds => nds.filter(n => !selectedElements.nodes.includes(n.id)));
+      setEdges(eds => eds.filter(e => !selectedElements.edges.includes(e.id)));
+    }
+  }, [selectedElements, setNodes, setEdges]);
+
+  // Context menu for nodes/edges
+  const onNodeContextMenu: NodeMouseHandler = useCallback((event: React.MouseEvent, node: Node) => {
+    event.preventDefault();
+    setContextMenu({ x: event.clientX, y: event.clientY, type: 'node', id: node.id });
+  }, []);
+  const onEdgeContextMenu: EdgeMouseHandler = useCallback((event: React.MouseEvent, edge: Edge) => {
+    event.preventDefault();
+    setContextMenu({ x: event.clientX, y: event.clientY, type: 'edge', id: edge.id });
+  }, []);
+  const handleDeleteContext = useCallback(() => {
+    if (!contextMenu) return;
+    if (contextMenu.type === 'node') {
+      setNodes(nds => nds.filter(n => n.id !== contextMenu.id));
+      setEdges(eds => eds.filter(e => e.source !== contextMenu.id && e.target !== contextMenu.id));
+    } else if (contextMenu.type === 'edge') {
+      setEdges(eds => eds.filter(e => e.id !== contextMenu.id));
+    }
+    setContextMenu(null);
+  }, [contextMenu, setNodes, setEdges]);
+
+  // Attach keyboard event
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
 
   return (
     <div className="h-full flex flex-col">
@@ -249,6 +349,10 @@ export default function WorkflowDesigner({ workflow, onSave }: WorkflowDesignerP
           nodeTypes={nodeTypes}
           fitView
           className="bg-gray-50"
+          onEdgeDoubleClick={onEdgeDoubleClick}
+          onSelectionChange={onSelectionChange}
+          onNodeContextMenu={onNodeContextMenu}
+          onEdgeContextMenu={onEdgeContextMenu}
         >
           <Controls />
           <Background />
@@ -260,6 +364,17 @@ export default function WorkflowDesigner({ workflow, onSave }: WorkflowDesignerP
               <p>Connections: {edges.length}</p>
             </div>
           </Panel>
+          {/* Context menu for delete */}
+          {contextMenu && (
+            <div
+              style={{ position: 'fixed', top: contextMenu.y, left: contextMenu.x, zIndex: 1000 }}
+              className="bg-white border border-gray-300 rounded shadow p-2"
+              onClick={handleDeleteContext}
+              onContextMenu={e => e.preventDefault()}
+            >
+              <button className="text-red-600 font-semibold">Delete</button>
+            </div>
+          )}
         </ReactFlow>
       </div>
 

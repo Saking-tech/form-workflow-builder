@@ -16,7 +16,6 @@ import {
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'My Requests', href: '/requests', icon: FileText },
-  { name: 'Create Request', href: '/create', icon: Plus },
   { name: 'Forms', href: '/forms', icon: Settings },
   { name: 'Workflows', href: '/workflows', icon: Workflow },
 ];

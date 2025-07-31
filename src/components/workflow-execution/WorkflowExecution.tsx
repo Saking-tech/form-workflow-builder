@@ -15,6 +15,7 @@ import {
   ArrowRight,
   ArrowLeft
 } from 'lucide-react';
+import InteractiveForm from '@/components/form-interactive/InteractiveForm';
 
 interface WorkflowExecutionProps {
   request: Request;
@@ -169,7 +170,7 @@ export default function WorkflowExecution({ request, onComplete, onClose }: Work
             {currentForm ? (
               <FormExecution
                 form={currentForm}
-                initialData={executionData[currentStep.id] || {}}
+                initialData={executionData[currentStep.id] as Record<string, unknown> || {} as Record<string, unknown>}
                 onComplete={handleStepComplete}
                 onSkip={handleStepSkip}
               />
@@ -217,179 +218,34 @@ export default function WorkflowExecution({ request, onComplete, onClose }: Work
 
 // Form Execution Component
 interface FormExecutionProps {
-  form: Record<string, unknown>;
+  form: any; // Changed from Record<string, unknown> to any to match InteractiveForm
   initialData: Record<string, unknown>;
   onComplete: (data: Record<string, unknown>) => void;
   onSkip: () => void;
 }
 
 function FormExecution({ form, initialData, onComplete, onSkip }: FormExecutionProps) {
-  const [formData, setFormData] = useState<Record<string, any>>(initialData);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Basic validation
-    const newErrors: Record<string, string> = {};
-    form.sections.forEach((section: any) => {
-      section.fields.forEach((field: any) => {
-        if (field.required && !formData[field.id]) {
-          newErrors[field.id] = `${field.label} is required`;
-        }
-      });
-    });
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
-    onComplete(formData);
-  };
-
-  const handleFieldChange = (fieldId: string, value: unknown) => {
-    setFormData(prev => ({ ...prev, [fieldId]: value }));
-    if (errors[fieldId]) {
-      setErrors(prev => ({ ...prev, [fieldId]: '' }));
-    }
+  const handleFormSubmit = (data: Record<string, unknown>) => {
+    onComplete(data);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {form.sections.map((section: Record<string, unknown>) => (
-        <div key={section.id} className="bg-white border border-gray-200 rounded-lg p-6">
-          <h4 className="text-lg font-semibold text-gray-900 mb-4">{section.title}</h4>
-          {section.subtitle && (
-            <p className="text-sm text-gray-600 mb-4">{section.subtitle}</p>
-          )}
-          
-          <div className="space-y-4">
-            {section.fields.map((field: Record<string, unknown>) => (
-              <div key={field.id}>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {field.label}
-                  {field.required && <span className="text-red-500 ml-1">*</span>}
-                </label>
-                
-                {field.type === 'text' && (
-                  <input
-                    type="text"
-                    value={formData[field.id] || ''}
-                    onChange={(e) => handleFieldChange(field.id, e.target.value)}
-                    placeholder={field.placeholder}
-                    className={`w-full px-3 py-2 border rounded-md ${
-                      errors[field.id] ? 'border-red-500' : 'border-gray-300'
-                    } focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                  />
-                )}
-
-                {field.type === 'textarea' && (
-                  <textarea
-                    value={formData[field.id] || ''}
-                    onChange={(e) => handleFieldChange(field.id, e.target.value)}
-                    placeholder={field.placeholder}
-                    rows={4}
-                    className={`w-full px-3 py-2 border rounded-md ${
-                      errors[field.id] ? 'border-red-500' : 'border-gray-300'
-                    } focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                  />
-                )}
-
-                {field.type === 'dropdown' && (
-                  <select
-                    value={formData[field.id] || ''}
-                    onChange={(e) => handleFieldChange(field.id, e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-md ${
-                      errors[field.id] ? 'border-red-500' : 'border-gray-300'
-                    } focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                  >
-                    <option value="">{field.placeholder}</option>
-                    {field.options?.map((option: any) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                )}
-
-                {field.type === 'date' && (
-                  <input
-                    type="date"
-                    value={formData[field.id] || ''}
-                    onChange={(e) => handleFieldChange(field.id, e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-md ${
-                      errors[field.id] ? 'border-red-500' : 'border-gray-300'
-                    } focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                  />
-                )}
-
-                {field.type === 'radio' && (
-                  <div className="space-y-2">
-                    {field.options?.map((option: any) => (
-                      <label key={option.value} className="flex items-center space-x-2">
-                        <input
-                          type="radio"
-                          name={field.id}
-                          value={option.value}
-                          checked={formData[field.id] === option.value}
-                          onChange={(e) => handleFieldChange(field.id, e.target.value)}
-                          className="rounded-full border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="text-sm text-gray-700">{option.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                )}
-
-                {field.type === 'checkbox' && (
-                  <div className="space-y-2">
-                    {field.options?.map((option: any) => (
-                      <label key={option.value} className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          value={option.value}
-                          checked={formData[field.id]?.includes?.(option.value) || false}
-                          onChange={(e) => {
-                            const currentValues = formData[field.id] || [];
-                            const newValues = e.target.checked
-                              ? [...currentValues, option.value]
-                              : currentValues.filter((v: string) => v !== option.value);
-                            handleFieldChange(field.id, newValues);
-                          }}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="text-sm text-gray-700">{option.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                )}
-
-                {errors[field.id] && (
-                  <p className="text-red-600 text-sm mt-1">{errors[field.id]}</p>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-
-      <div className="flex items-center justify-between pt-6">
+    <div className="space-y-6">
+      <InteractiveForm 
+        form={form} 
+        onSubmit={handleFormSubmit}
+        className=""
+      />
+      
+      <div className="flex items-center justify-between pt-4 border-t border-gray-200">
         <button
-          type="button"
           onClick={onSkip}
           className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
         >
           Skip Step
         </button>
-        <button
-          type="submit"
-          className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          Complete Step
-        </button>
       </div>
-    </form>
+    </div>
   );
 }
 
