@@ -8,14 +8,11 @@ import { generateId, formatDate } from '@/lib/utils';
 import WorkflowDesigner from '@/components/workflow-designer/WorkflowDesigner';
 import { 
   Plus, 
-  Play, 
   Settings, 
   Eye, 
   Trash2, 
   Copy,
-  FileText,
-  CheckCircle,
-  Clock
+  FileText
 } from 'lucide-react';
 
 export default function WorkflowsPage() {
@@ -123,62 +120,7 @@ export default function WorkflowsPage() {
         </button>
       </div>
 
-      {/* Workflow Statistics */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-        <div className="bg-white/70 backdrop-blur-sm p-3 md:p-4 rounded-xl border border-gray-200/50 shadow-sm hover:shadow-md transition-all duration-200">
-          <div className="flex items-center">
-            <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 shadow-sm">
-              <FileText className="h-5 w-5 md:h-6 md:w-6 text-white" />
-            </div>
-            <div className="ml-2 md:ml-4">
-              <p className="text-xs md:text-sm font-medium text-gray-600">Total</p>
-              <p className="text-lg md:text-2xl font-bold text-gray-900">{workflows?.length || 0}</p>
-            </div>
-          </div>
-        </div>
 
-        <div className="bg-white/70 backdrop-blur-sm p-3 md:p-4 rounded-xl border border-gray-200/50 shadow-sm hover:shadow-md transition-all duration-200">
-          <div className="flex items-center">
-            <div className="p-2 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 shadow-sm">
-              <CheckCircle className="h-5 w-5 md:h-6 md:w-6 text-white" />
-            </div>
-            <div className="ml-2 md:ml-4">
-              <p className="text-xs md:text-sm font-medium text-gray-600">Active</p>
-              <p className="text-lg md:text-2xl font-bold text-gray-900">
-                {workflows?.filter(w => w.status === 'active').length || 0}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white/70 backdrop-blur-sm p-3 md:p-4 rounded-xl border border-gray-200/50 shadow-sm hover:shadow-md transition-all duration-200">
-          <div className="flex items-center">
-            <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 shadow-sm">
-              <Clock className="h-5 w-5 md:h-6 md:w-6 text-white" />
-            </div>
-            <div className="ml-2 md:ml-4">
-              <p className="text-xs md:text-sm font-medium text-gray-600">Draft</p>
-              <p className="text-lg md:text-2xl font-bold text-gray-900">
-                {workflows?.filter(w => w.status === 'draft').length || 0}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white/70 backdrop-blur-sm p-3 md:p-4 rounded-xl border border-gray-200/50 shadow-sm hover:shadow-md transition-all duration-200">
-          <div className="flex items-center">
-            <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 shadow-sm">
-              <Play className="h-5 w-5 md:h-6 md:w-6 text-white" />
-            </div>
-            <div className="ml-2 md:ml-4">
-              <p className="text-xs md:text-sm font-medium text-gray-600">Completed</p>
-              <p className="text-lg md:text-2xl font-bold text-gray-900">
-                {workflows?.filter(w => w.status === 'completed').length || 0}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Workflows List */}
       <div className="bg-white/70 backdrop-blur-sm rounded-xl border border-gray-200/50 shadow-sm">
