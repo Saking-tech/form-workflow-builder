@@ -37,6 +37,14 @@ export default function FormBuilder({ form, onFormChange }: FormBuilderProps) {
   const [editingField, setEditingField] = useState<{ sectionId: string; fieldId: string } | null>(null);
   const [editingSection, setEditingSection] = useState<string | null>(null);
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
+  const [showFieldEditModal, setShowFieldEditModal] = useState(false);
+  const [fieldEditData, setFieldEditData] = useState({
+    label: '',
+    placeholder: '',
+    required: false,
+    size: '1x1' as '1x1' | '1x2' | '1x3',
+    options: [] as { label: string; value: string }[]
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -214,6 +222,36 @@ export default function FormBuilder({ form, onFormChange }: FormBuilderProps) {
     onFormChange(updatedForm);
   };
 
+  const handleFieldEdit = (field: FormField) => {
+    setFieldEditData({
+      label: field.label,
+      placeholder: field.placeholder || '',
+      required: field.required,
+      size: field.size,
+      options: field.options || []
+    });
+    setEditingField({ sectionId: field.id.split('_')[0], fieldId: field.id });
+    setShowFieldEditModal(true);
+  };
+
+  const handleFieldSave = () => {
+    if (editingField) {
+      updateField(editingField.sectionId, editingField.fieldId, {
+        label: fieldEditData.label,
+        placeholder: fieldEditData.placeholder,
+        required: fieldEditData.required,
+        size: fieldEditData.size,
+        options: fieldEditData.options
+      });
+      setShowFieldEditModal(false);
+      setEditingField(null);
+    }
+  };
+
+  const handleFieldCancel = () => {
+    setShowFieldEditModal(false);
+    setEditingField(null);
+  };
 
 
   return (
@@ -264,21 +302,22 @@ export default function FormBuilder({ form, onFormChange }: FormBuilderProps) {
               strategy={verticalListSortingStrategy}
             >
               {form.sections.map((section) => (
-                                 <SortableSection
-                   key={section.id}
-                   section={section}
-                   formId={form.id}
-                   isActive={activeSection === section.id}
-                   onActivate={() => setActiveSection(section.id)}
-                   onTitleChange={(title) => updateSectionTitle(section.id, title)}
-                   onDelete={() => deleteSection(section.id)}
-                   onDeleteField={(fieldId) => deleteField(section.id, fieldId)}
-                   onUpdateField={(fieldId, updates) => updateField(section.id, fieldId, updates)}
-                   editingField={editingField}
-                   setEditingField={setEditingField}
-                   isCollapsed={collapsedSections.has(section.id)}
-                   onToggleCollapse={() => toggleSectionCollapse(section.id)}
-                 />
+                <SortableSection
+                  key={section.id}
+                  section={section}
+                  formId={form.id}
+                  isActive={activeSection === section.id}
+                  onActivate={() => setActiveSection(section.id)}
+                  onTitleChange={(title) => updateSectionTitle(section.id, title)}
+                  onDelete={() => deleteSection(section.id)}
+                  onDeleteField={(fieldId) => deleteField(section.id, fieldId)}
+                  onUpdateField={(fieldId, updates) => updateField(section.id, fieldId, updates)}
+                  editingField={editingField}
+                  setEditingField={setEditingField}
+                  isCollapsed={collapsedSections.has(section.id)}
+                  onToggleCollapse={() => toggleSectionCollapse(section.id)}
+                  onFieldEdit={handleFieldEdit}
+                />
               ))}
             </SortableContext>
 
@@ -301,14 +340,20 @@ export default function FormBuilder({ form, onFormChange }: FormBuilderProps) {
 
       <DragOverlay>
         {draggedField ? (
-          <div className="p-3 bg-white border border-blue-200 rounded-md shadow-lg">
-            <div className="flex items-center">
-              <span className="text-lg mr-2">{draggedField.icon}</span>
-              <span className="text-sm font-medium text-gray-700">{draggedField.label}</span>
-            </div>
-          </div>
+          <DraggableFieldType fieldType={draggedField} />
         ) : null}
       </DragOverlay>
+
+      {/* Field Edit Modal */}
+      {showFieldEditModal && editingField && (
+        <FieldEditModal
+          field={editingField}
+          fieldData={fieldEditData}
+          onSave={handleFieldSave}
+          onCancel={handleFieldCancel}
+          onClose={() => setShowFieldEditModal(false)}
+        />
+      )}
     </DndContext>
   );
 }
@@ -362,7 +407,8 @@ function SortableSection({
   editingField,
   setEditingField,
   isCollapsed,
-  onToggleCollapse
+  onToggleCollapse,
+  onFieldEdit
 }: { 
   section: FormSection;
   formId: string;
@@ -376,6 +422,7 @@ function SortableSection({
   setEditingField: (field: { sectionId: string; fieldId: string } | null) => void;
   isCollapsed: boolean;
   onToggleCollapse: () => void;
+  onFieldEdit: (field: FormField) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useSortable({
     id: section.id,
@@ -522,6 +569,7 @@ function SortableSection({
                   onUpdate={(updates) => onUpdateField(field.id, updates)}
                   editingField={editingField}
                   setEditingField={setEditingField}
+                  onEdit={() => onFieldEdit(field)}
                 />
               ))}
               
@@ -583,7 +631,8 @@ function SortableField({
   onDelete,
   onUpdate,
   editingField,
-  setEditingField
+  setEditingField,
+  onEdit
 }: {
   field: FormField;
   sectionId: string;
@@ -591,13 +640,13 @@ function SortableField({
   onUpdate: (updates: Partial<FormField>) => void;
   editingField: { sectionId: string; fieldId: string } | null;
   setEditingField: (field: { sectionId: string; fieldId: string } | null) => void;
+  onEdit: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useSortable({
     id: field.id,
     data: {
       type: 'field',
-      field,
-      sectionId
+      field
     }
   });
 
@@ -605,8 +654,6 @@ function SortableField({
     transform: CSS.Transform.toString(transform),
     opacity: isDragging ? 0.5 : 1,
   };
-
-  const isEditing = editingField?.sectionId === sectionId && editingField?.fieldId === field.id;
 
   const getGridSpan = () => {
     switch (field.size) {
@@ -625,55 +672,44 @@ function SortableField({
       {...listeners}
       className={`p-4 border border-gray-200 rounded-md bg-gray-50 hover:bg-gray-100 transition-colors ${getGridSpan()}`}
     >
-      {isEditing ? (
-        <FieldEditor
-          field={field}
-          onSave={(updates) => {
-            onUpdate(updates);
-            setEditingField(null);
-          }}
-          onCancel={() => setEditingField(null)}
-        />
-      ) : (
-        <div className="flex items-center justify-between">
-          <div className="flex-1">
-                         <div className="flex items-center space-x-2">
-               <GripVertical className="w-3 h-3 text-gray-500" />
-               <label className="block text-sm font-medium text-gray-700">
-                 {field.label}
-                 {field.required && <span className="text-red-500 ml-1">*</span>}
-               </label>
-                               <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                  {field.type}
-                </span>
-                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                  {field.size}
-                </span>
-             </div>
-            {field.placeholder && (
-              <p className="text-xs text-gray-500 mt-1">{field.placeholder}</p>
-            )}
+      <div className="flex items-center justify-between">
+        <div className="flex-1">
+          <div className="flex items-center space-x-2">
+            <GripVertical className="w-3 h-3 text-gray-500" />
+            <label className="block text-sm font-medium text-gray-700">
+              {field.label}
+              {field.required && <span className="text-red-500 ml-1">*</span>}
+            </label>
+            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+              {field.type}
+            </span>
+            <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+              {field.size}
+            </span>
           </div>
-                     <div className="flex items-center space-x-2">
-             <button
-               onClick={() => setEditingField({ sectionId, fieldId: field.id })}
-               className="p-1 rounded-md text-gray-700 hover:text-gray-100 bg-green-300 hover:bg-green-600 transition-colors"
-               title="Edit field"
-             >
-               <Edit2 className="w-3 h-3" />
-             </button>
-             <button
-               onClick={onDelete}
-               className="p-1 rounded-md text-red-700 bg-red-500 hover:bg-red-700 transition-colors"
-               title="Delete field"
-             >
-               <Trash2 className="w-3 h-3" />
-             </button>
-           </div>
+          {field.placeholder && (
+            <p className="text-xs text-gray-500 mt-1">{field.placeholder}</p>
+          )}
         </div>
-      )}
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={onEdit}
+            className="p-1 rounded-md text-gray-700 hover:text-gray-100 bg-green-300 hover:bg-green-600 transition-colors"
+            title="Edit field"
+          >
+            <Edit2 className="w-3 h-3" />
+          </button>
+          <button
+            onClick={onDelete}
+            className="p-1 rounded-md text-red-700 bg-red-500 hover:bg-red-700 transition-colors"
+            title="Delete field"
+          >
+            <Trash2 className="w-3 h-3" />
+          </button>
+        </div>
+      </div>
       
-      {field.options && field.options.length > 0 && !isEditing && (
+      {field.options && field.options.length > 0 && (
         <div className="mt-2">
           <p className="text-xs text-gray-500">Options:</p>
           <div className="flex flex-wrap gap-1 mt-1">
@@ -857,6 +893,192 @@ function FieldEditor({
         >
           <Check className="w-4 h-4" />
         </button>
+      </div>
+    </div>
+  );
+}
+
+// Field Edit Modal Component
+function FieldEditModal({
+  field,
+  fieldData,
+  onSave,
+  onCancel,
+  onClose
+}: {
+  field: { sectionId: string; fieldId: string };
+  fieldData: {
+    label: string;
+    placeholder: string;
+    required: boolean;
+    size: '1x1' | '1x2' | '1x3';
+    options: { label: string; value: string }[];
+  };
+  onSave: () => void;
+  onCancel: () => void;
+  onClose: () => void;
+}) {
+  const [formData, setFormData] = useState({
+    label: fieldData.label,
+    placeholder: fieldData.placeholder,
+    required: fieldData.required,
+    size: fieldData.size,
+    options: fieldData.options
+  });
+
+  const [newOption, setNewOption] = useState({ label: '', value: '' });
+
+  const handleSave = () => {
+    onSave();
+  };
+
+  const addOption = () => {
+    if (newOption.label && newOption.value) {
+      setFormData(prev => ({
+        ...prev,
+        options: [...prev.options, { ...newOption }]
+      }));
+      setNewOption({ label: '', value: '' });
+    }
+  };
+
+  const removeOption = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      options: prev.options.filter((_, i) => i !== index)
+    }));
+  };
+
+  return (
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+      <div className="relative p-8 border w-full max-w-md max-h-[90vh] overflow-y-auto bg-white rounded-lg shadow-xl">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">Edit Field</h3>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="space-y-4">
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Label</label>
+              <input
+                type="text"
+                value={formData.label}
+                onChange={(e) => setFormData(prev => ({ ...prev, label: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Placeholder</label>
+              <input
+                type="text"
+                value={formData.placeholder}
+                onChange={(e) => setFormData(prev => ({ ...prev, placeholder: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Size</label>
+              <select
+                value={formData.size}
+                onChange={(e) => setFormData(prev => ({ ...prev, size: e.target.value as '1x1' | '1x2' | '1x3' }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+              >
+                <option value="1x1">1 Column</option>
+                <option value="1x2">2 Columns</option>
+                <option value="1x3">3 Columns</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="required"
+              checked={formData.required}
+              onChange={(e) => setFormData(prev => ({ ...prev, required: e.target.checked }))}
+              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            <label htmlFor="required" className="text-sm font-medium text-gray-700">Required field</label>
+          </div>
+
+          {/* Options section - show for dropdown, radio, checkbox fields */}
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-gray-700">Options</label>
+            <div className="space-y-2">
+              {formData.options.map((option, index) => (
+                <div key={index} className="flex items-center space-x-2">
+                  <input
+                    type="text"
+                    value={option.label}
+                    onChange={(e) => {
+                      const newOptions = [...formData.options];
+                      newOptions[index].label = e.target.value;
+                      setFormData(prev => ({ ...prev, options: newOptions }));
+                    }}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                    placeholder="Option label"
+                  />
+                  <input
+                    type="text"
+                    value={option.value}
+                    onChange={(e) => {
+                      const newOptions = [...formData.options];
+                      newOptions[index].value = e.target.value;
+                      setFormData(prev => ({ ...prev, options: newOptions }));
+                    }}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                    placeholder="Option value"
+                  />
+                  <button
+                    onClick={() => removeOption(index)}
+                    className="p-2 text-red-400 hover:text-red-600"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+              <div className="flex items-center space-x-2">
+                <input
+                  type="text"
+                  value={newOption.label}
+                  onChange={(e) => setNewOption(prev => ({ ...prev, label: e.target.value }))}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                  placeholder="New option label"
+                />
+                <input
+                  type="text"
+                  value={newOption.value}
+                  onChange={(e) => setNewOption(prev => ({ ...prev, value: e.target.value }))}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                  placeholder="New option value"
+                />
+                <button
+                  onClick={addOption}
+                  className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end space-x-2">
+            <button
+              onClick={onCancel}
+              className="px-3 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              Save
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
