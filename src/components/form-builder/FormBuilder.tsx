@@ -393,7 +393,7 @@ function DraggableFieldType({ fieldType }: { fieldType: typeof FIELD_TYPES[0] })
       style={style}
       {...attributes}
       {...listeners}
-      className="p-3 bg-gradient-to-r from-blue-100 to-indigo-100 border border-gray-200 rounded-lg cursor-move hover:border-blue-400 hover:bg-blue-200 hover:shadow-sm transition-all"
+      className="p-3 bg-gradient-to-r from-blue-200 to-indigo-200 border border-blue-200 rounded-xl cursor-move hover:border-blue-800 hover:bg-blue-600"
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center">
@@ -474,7 +474,7 @@ function SortableSection({
       style={style}
       {...attributes}
       {...listeners}
-      className={`bg-white border border-gray-200 rounded-lg p-6 transition-all ${
+      className={`bg-gradient-to-r from-blue-100 to-indigo-100 border border-gray-200 rounded-lg p-6 transition-all ${
         isActive ? 'ring-2 ring-blue-500 shadow-lg' : 'hover:shadow-md'
       }`}
       data-droppable="true"

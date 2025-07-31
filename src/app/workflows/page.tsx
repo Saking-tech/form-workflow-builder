@@ -208,7 +208,7 @@ export default function WorkflowsPage() {
               </tr>
             </thead>
             <tbody className="bg-white/50 divide-y divide-gray-200">
-              {workflows?.map((workflow) => {
+              {workflows && workflows.length > 0 ? workflows.map((workflow) => {
                 const formCount = workflow.nodes.filter(node => node.formId).length;
                 
                 return (
@@ -266,7 +266,7 @@ export default function WorkflowsPage() {
                     </td>
                   </tr>
                 );
-              })}
+              }) : null}
             </tbody>
           </table>
         </div>
