@@ -26,7 +26,7 @@ interface WorkflowExecutionProps {
 export default function WorkflowExecution({ request, onComplete, onClose }: WorkflowExecutionProps) {
   const { workflows } = useWorkflowStore();
   const { forms } = useFormStore();
-  const { updateRequest } = useRequestStore();
+  const { updateRequest, resetRequest } = useRequestStore();
   
   const workflow = workflows.find(w => w.id === request.workflowId);
   const [currentStepIndex, setCurrentStepIndex] = useState(request.currentStep);
@@ -62,11 +62,20 @@ export default function WorkflowExecution({ request, onComplete, onClose }: Work
     if (currentStepIndex < (workflow?.nodes.length || 0) - 1) {
       setCurrentStepIndex(prev => prev + 1);
     } else {
-      // Workflow completed
+      // Workflow completed - reset for multiple executions
       updateRequest(request.id, {
         status: 'completed',
         currentStep: currentStepIndex + 1
       });
+      
+      // Reset the request after a short delay to allow for multiple executions
+      setTimeout(() => {
+        resetRequest(request.id);
+        setCurrentStepIndex(0);
+        setCompletedSteps([]);
+        setExecutionData({});
+      }, 2000);
+      
       onComplete?.();
     }
   };
@@ -110,24 +119,35 @@ export default function WorkflowExecution({ request, onComplete, onClose }: Work
 
   return (
     <div className="h-full flex flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900">Workflow Execution</h2>
-          <p className="text-sm text-gray-600">{request.title}</p>
-        </div>
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
-          >
-            Close
-          </button>
-        </div>
-      </div>
-
-      {/* Progress Steps */}
+      {/* Header and Progress Steps */}
       <div className="p-4 bg-gray-50 border-b border-gray-200">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Workflow Execution</h2>
+            <p className="text-sm text-gray-600">{request.title}</p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => {
+                resetRequest(request.id);
+                setCurrentStepIndex(0);
+                setCompletedSteps([]);
+                setExecutionData({});
+              }}
+              className="px-4 py-2 text-blue-600 border border-blue-300 rounded-md hover:bg-blue-50"
+            >
+              Reset Workflow
+            </button>
+            <button
+              onClick={onClose}
+              className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+
+        {/* Progress Steps */}
         <div className="flex items-center space-x-4 overflow-x-auto">
           {workflow.nodes.map((node, index) => (
             <div key={node.id} className="flex items-center space-x-2">
@@ -236,15 +256,6 @@ function FormExecution({ form, initialData, onComplete, onSkip }: FormExecutionP
         onSubmit={handleFormSubmit}
         className=""
       />
-      
-      <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-        <button
-          onClick={onSkip}
-          className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
-        >
-          Skip Step
-        </button>
-      </div>
     </div>
   );
 }
@@ -290,14 +301,7 @@ function DecisionExecution({ node, onComplete, onSkip }: DecisionExecutionProps)
         </button>
       </div>
 
-      <div className="mt-6 pt-4 border-t border-gray-200">
-        <button
-          onClick={onSkip}
-          className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
-        >
-          Skip Decision
-        </button>
-      </div>
+
     </div>
   );
 }

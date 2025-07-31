@@ -3,7 +3,6 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import '@xyflow/react/dist/style.css';
 import Sidebar from "@/components/layout/Sidebar";
-import Header from "@/components/layout/Header";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -32,7 +31,6 @@ export default function RootLayout({
           </div>
           
           <div className="flex flex-1 flex-col min-w-0">
-            <Header />
             <main className="flex-1 overflow-auto">
               {children}
             </main>

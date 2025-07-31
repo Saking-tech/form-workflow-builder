@@ -6,6 +6,7 @@ import { useFormStore } from '@/stores/formStore';
 import { useWorkflowStore } from '@/stores/workflowStore';
 import { useRequestStore } from '@/stores/requestStore';
 import { generateId, validateEmail } from '@/lib/utils';
+import { Request } from '@/types';
 import { 
   ChevronLeft, 
   FileText, 
@@ -27,7 +28,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 
-interface FormData {
+interface RequestFormData {
   // Step 1: Request Type
   requestType: string;
   
@@ -74,12 +75,12 @@ const requestTypes = [
 
 export default function CreateRequestPage() {
   const router = useRouter();
-  const { createFormFromTemplate } = useFormStore();
-  const { addWorkflow } = useWorkflowStore();
   const { addRequest } = useRequestStore();
+  const { workflows } = useWorkflowStore();
+  const { forms } = useFormStore();
   
   const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<RequestFormData>({
     requestType: '',
     uploadedDocument: null,
     aiAnalysisComplete: false,
@@ -104,12 +105,12 @@ export default function CreateRequestPage() {
     comments: '',
     confirmation: false
   });
-  const [errors, setErrors] = useState<Partial<FormData>>({});
+  const [errors, setErrors] = useState<Partial<RequestFormData>>({});
   const [isUploading, setIsUploading] = useState(false);
   const [showRequestTypeDropdown, setShowRequestTypeDropdown] = useState(false);
 
   const validateStep = (step: number): boolean => {
-    const newErrors: Partial<FormData> = {};
+    const newErrors: Partial<RequestFormData> = {};
 
     if (step === 1) {
       if (!formData.requestType.trim()) {
@@ -186,20 +187,25 @@ export default function CreateRequestPage() {
       }
     }
 
+    console.log('Validation errors:', newErrors);
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const isValid = Object.keys(newErrors).length === 0;
+    console.log('Step validation result:', isValid);
+    return isValid;
   };
 
   const handleNext = () => {
     if (validateStep(currentStep)) {
-    if (currentStep < 3) {
-      setCurrentStep(currentStep + 1);
+      if (currentStep < 3) {
+        setCurrentStep(currentStep + 1);
         // Update step status
         steps[currentStep - 1].status = 'complete';
         steps[currentStep].status = 'current';
-    } else {
+      } else {
         handleSubmit();
       }
+    } else {
+      console.log('Validation failed for step:', currentStep);
     }
   };
 
@@ -213,48 +219,47 @@ export default function CreateRequestPage() {
   };
 
   const handleSubmit = () => {
-    // Create form from template
-    const form = createFormFromTemplate('vendor-agreement');
+    if (!validateStep(currentStep)) return;
     
-    // Create workflow
-    const workflowId = generateId();
-    const workflow = {
-      id: workflowId,
-      name: 'Vendor Agreement Workflow',
-      description: 'Standard vendor agreement workflow',
-      nodes: [
-        { id: generateId(), formId: form.id, position: { x: 100, y: 100 }, status: 'pending' as const }
-      ],
-      connections: [],
-      status: 'active' as const,
-      createdAt: new Date()
-    };
-    addWorkflow(workflow);
+    console.log('Submitting form with data:', formData);
     
-    // Create request
-    const requestId = generateId();
-    const request = {
-      id: requestId,
-      title: formData.title || 'Vendor Agreement Request',
-      description: 'Vendor agreement request with form data',
-      workflowId: workflowId,
-      formId: form.id,
+    // Create a request with the form data
+    const request: Request = {
+      id: generateId(),
+      title: formData.title,
+      workflowId: formData.requestType, // Use request type as workflow ID for now
       status: 'pending' as const,
       currentStep: 0,
-      formData: formData,
+      formData: Object.fromEntries(
+        Object.entries(formData).map(([key, value]) => [key, value])
+      ),
       createdAt: new Date(),
       updatedAt: new Date()
     };
-    addRequest(request);
     
-    router.push('/requests');
+    console.log('Created request object:', request);
+    
+    try {
+      addRequest(request);
+      console.log('Request saved successfully:', request);
+      
+      // Show success message
+      alert('Request submitted successfully!');
+      
+      // Navigate to requests page
+      router.push('/requests');
+    } catch (error) {
+      console.error('Error saving request:', error);
+      alert('Error saving request. Please try again.');
+    }
   };
 
-  const updateFormData = (field: keyof FormData, value: any) => {
+  const updateFormData = (field: keyof RequestFormData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
+    console.log(`Updated ${field}:`, value);
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {

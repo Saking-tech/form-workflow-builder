@@ -9,11 +9,15 @@ const nextConfig: NextConfig = {
     // Disable TypeScript errors during builds
     ignoreBuildErrors: true,
   },
-  // Ensure proper output for Vercel
-  output: 'standalone',
+  // Remove standalone output to fix build issues
+  // output: 'standalone',
   // Enable experimental features for better performance
   experimental: {
     optimizePackageImports: ['lucide-react'],
+  },
+  // Add proper build settings
+  generateBuildId: async () => {
+    return 'build-' + Date.now();
   },
 };
 

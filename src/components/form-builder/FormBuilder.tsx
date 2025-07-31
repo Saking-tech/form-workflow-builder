@@ -230,18 +230,32 @@ export default function FormBuilder({ form, onFormChange }: FormBuilderProps) {
       size: field.size,
       options: field.options || []
     });
-    setEditingField({ sectionId: field.id.split('_')[0], fieldId: field.id });
-    setShowFieldEditModal(true);
+    
+    // Find the section that contains this field
+    const section = form.sections.find(section => 
+      section.fields.some(f => f.id === field.id)
+    );
+    
+    if (section) {
+      setEditingField({ sectionId: section.id, fieldId: field.id });
+      setShowFieldEditModal(true);
+    }
   };
 
-  const handleFieldSave = () => {
+  const handleFieldSave = (data: {
+    label: string;
+    placeholder: string;
+    required: boolean;
+    size: '1x1' | '1x2' | '1x3';
+    options: { label: string; value: string }[];
+  }) => {
     if (editingField) {
       updateField(editingField.sectionId, editingField.fieldId, {
-        label: fieldEditData.label,
-        placeholder: fieldEditData.placeholder,
-        required: fieldEditData.required,
-        size: fieldEditData.size,
-        options: fieldEditData.options
+        label: data.label,
+        placeholder: data.placeholder,
+        required: data.required,
+        size: data.size,
+        options: data.options
       });
       setShowFieldEditModal(false);
       setEditingField(null);
@@ -952,7 +966,13 @@ function FieldEditModal({
     size: '1x1' | '1x2' | '1x3';
     options: { label: string; value: string }[];
   };
-  onSave: () => void;
+  onSave: (data: {
+    label: string;
+    placeholder: string;
+    required: boolean;
+    size: '1x1' | '1x2' | '1x3';
+    options: { label: string; value: string }[];
+  }) => void;
   onCancel: () => void;
   onClose: () => void;
 }) {
@@ -967,7 +987,7 @@ function FieldEditModal({
   const [newOption, setNewOption] = useState({ label: '', value: '' });
 
   const handleSave = () => {
-    onSave();
+    onSave(formData);
   };
 
   const addOption = () => {

@@ -11,6 +11,7 @@ interface RequestStore {
   setCurrentRequest: (request: Request | null) => void;
   updateRequestProgress: (id: string, step: number, formData: any) => void;
   completeRequest: (id: string) => void;
+  resetRequest: (id: string) => void;
 }
 
 export const useRequestStore = create<RequestStore>(
@@ -53,6 +54,19 @@ export const useRequestStore = create<RequestStore>(
         ? { 
             ...request, 
             status: 'completed',
+            updatedAt: new Date()
+          }
+        : request
+    )
+  })),
+  
+  resetRequest: (id) => set((state) => ({
+    requests: state.requests.map(request => 
+      request.id === id 
+        ? { 
+            ...request, 
+            status: 'pending',
+            currentStep: 0,
             updatedAt: new Date()
           }
         : request

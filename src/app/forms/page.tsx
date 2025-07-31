@@ -150,7 +150,7 @@ export default function FormsPage() {
 
       {/* Forms List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {forms.map((form) => (
+        {forms && forms.length > 0 ? forms.map((form) => (
           <div key={form.id} className="bg-white/70 backdrop-blur-sm border border-gray-200/50 rounded-xl p-6 hover:bg-white/80 hover:shadow-lg transition-all duration-200">
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
@@ -217,7 +217,19 @@ export default function FormsPage() {
               </div>
             </div>
           </div>
-        ))}
+        )) : (
+          <div className="col-span-full text-center py-12">
+            <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No forms yet</h3>
+            <p className="text-gray-600 mb-4">Create your first form to get started</p>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              Create First Form
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Create Form Modal */}

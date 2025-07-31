@@ -152,13 +152,13 @@ export default function RequestsPage() {
             </button>
           </div>
         </div>
-                 <div className="flex-1">
-           <WorkflowExecution
-             request={requests.find(r => r.id === selectedRequest) || requests[0] || { id: '', title: '', workflowId: '', currentStep: 0, status: 'pending', formData: {}, createdAt: new Date() }}
-             onComplete={handleExecutionComplete}
-             onClose={handleExecutionClose}
-           />
-         </div>
+        <div className="flex-1">
+          <WorkflowExecution
+            request={requests.find(r => r.id === selectedRequest) || requests[0] || { id: '', title: '', workflowId: '', currentStep: 0, status: 'pending', formData: {}, createdAt: new Date() }}
+            onComplete={handleExecutionComplete}
+            onClose={handleExecutionClose}
+          />
+        </div>
       </div>
     );
   }
@@ -256,20 +256,13 @@ export default function RequestsPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center justify-center">
                     <button
                       onClick={() => handleExecuteWorkflow(request.id)}
-                      className="flex-1 flex items-center justify-center px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-xs"
+                      className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
                     >
-                      <Play className="w-3 h-3 mr-1" />
-                      Execute
-                    </button>
-                    <button
-                      onClick={() => handleViewRequest(request.id)}
-                      className="flex-1 flex items-center justify-center px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 text-xs"
-                    >
-                      <Eye className="w-3 h-3 mr-1" />
-                      View
+                      <Play className="w-4 h-4 mr-2" />
+                      Execute Workflow
                     </button>
                   </div>
                 </div>
@@ -375,22 +368,15 @@ export default function RequestsPage() {
                         <div className="flex items-center space-x-2">
                           <button
                             onClick={() => handleExecuteWorkflow(request.id)}
-                            className="flex items-center px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                           >
-                            <Play className="w-4 h-4 mr-1" />
-                            Execute
-                          </button>
-                          <button
-                            onClick={() => handleViewRequest(request.id)}
-                            className="flex items-center px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
-                          >
-                            <Eye className="w-4 h-4 mr-1" />
-                            View
+                            <Play className="w-4 h-4 mr-2" />
+                            Execute Workflow
                           </button>
                           <div className="relative settings-menu">
                             <button
                               onClick={() => toggleSettingsMenu(request.id)}
-                              className="p-1 rounded hover:bg-gray-100"
+                              className="p-2 rounded hover:bg-gray-100"
                             >
                               <MoreHorizontal className="w-4 h-4 text-gray-500" />
                             </button>

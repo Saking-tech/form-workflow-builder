@@ -10,10 +10,10 @@ function reviveDates(obj: unknown): unknown {
     return obj.map(reviveDates);
   }
 
-  const result: any = {};
+  const result: Record<string, unknown> = {};
   for (const key in obj) {
     if (obj.hasOwnProperty(key)) {
-      const value = obj[key];
+      const value = (obj as Record<string, unknown>)[key];
       
       // Check if the key suggests it's a date field and the value is a string that looks like a date
       if ((key.includes('At') || key.includes('Date')) && 
@@ -34,7 +34,7 @@ export function persistStore<T extends object>(key: string, config: StateCreator
   return (set, get, api) => {
     // Hydrate from localStorage on initialization
     const stored = typeof window !== 'undefined' ? localStorage.getItem(key) : null;
-    const initialState = stored ? reviveDates(JSON.parse(stored)) : {};
+    const initialState = stored ? reviveDates(JSON.parse(stored)) as T : {} as T;
 
     // Create the store with the config
     const store = config((nextState) => {
