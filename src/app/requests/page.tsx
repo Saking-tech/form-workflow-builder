@@ -8,9 +8,7 @@ import { getStatusColor, getStatusIcon, formatDate } from '@/lib/utils';
 import WorkflowExecution from '@/components/workflow-execution/WorkflowExecution';
 import { 
   Play, 
-  Eye, 
   FileText,
-  Settings,
   Edit,
   Trash2,
   MoreHorizontal
@@ -70,10 +68,7 @@ export default function RequestsPage() {
     return forms.find(f => f.id === currentNode.formId);
   };
 
-  const handleViewRequest = (requestId: string) => {
-    // Navigate to a detailed view or open a modal
-    console.log('Viewing request:', requestId);
-  };
+
 
   const handleEditRequest = (requestId: string) => {
     const request = requests.find(r => r.id === requestId);

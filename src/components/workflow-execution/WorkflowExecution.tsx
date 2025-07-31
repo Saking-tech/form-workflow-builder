@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useFormStore } from '@/stores/formStore';
 import { useWorkflowStore } from '@/stores/workflowStore';
 import { useRequestStore } from '@/stores/requestStore';
-import { Workflow, WorkflowNode, Request } from '@/types';
+import { Workflow, WorkflowNode, Request, Form } from '@/types';
 import { 
   Play, 
   Pause, 
@@ -238,7 +238,7 @@ export default function WorkflowExecution({ request, onComplete, onClose }: Work
 
 // Form Execution Component
 interface FormExecutionProps {
-  form: any; // Changed from Record<string, unknown> to any to match InteractiveForm
+  form: Form; // Use the proper Form type
   initialData: Record<string, unknown>;
   onComplete: (data: Record<string, unknown>) => void;
   onSkip: () => void;

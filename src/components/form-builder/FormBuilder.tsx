@@ -22,7 +22,7 @@ import {
   useSortable
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Plus, GripVertical, Trash2, Settings, Edit2, Eye, Save, X, Check, ChevronDown, ChevronRight } from 'lucide-react';
+import { Plus, GripVertical, Trash2, Settings, Edit2, X, Check, ChevronDown, ChevronRight } from 'lucide-react';
 import { useDroppable } from '@dnd-kit/core';
 
 interface FormBuilderProps {
@@ -31,11 +31,10 @@ interface FormBuilderProps {
 }
 
 export default function FormBuilder({ form, onFormChange }: FormBuilderProps) {
-  const { updateForm, addSectionToForm, addFieldToSection, removeSectionFromForm, removeFieldFromSection, reorderFieldsInSection } = useFormStore();
+  const { addSectionToForm, addFieldToSection, removeSectionFromForm, removeFieldFromSection } = useFormStore();
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [draggedField, setDraggedField] = useState<typeof FIELD_TYPES[0] | null>(null);
   const [editingField, setEditingField] = useState<{ sectionId: string; fieldId: string } | null>(null);
-  const [editingSection, setEditingSection] = useState<string | null>(null);
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
   const [showFieldEditModal, setShowFieldEditModal] = useState(false);
   const [fieldEditData, setFieldEditData] = useState({
@@ -319,15 +318,11 @@ export default function FormBuilder({ form, onFormChange }: FormBuilderProps) {
                 <SortableSection
                   key={section.id}
                   section={section}
-                  formId={form.id}
                   isActive={activeSection === section.id}
                   onActivate={() => setActiveSection(section.id)}
                   onTitleChange={(title) => updateSectionTitle(section.id, title)}
                   onDelete={() => deleteSection(section.id)}
                   onDeleteField={(fieldId) => deleteField(section.id, fieldId)}
-                  onUpdateField={(fieldId, updates) => updateField(section.id, fieldId, updates)}
-                  editingField={editingField}
-                  setEditingField={setEditingField}
                   isCollapsed={collapsedSections.has(section.id)}
                   onToggleCollapse={() => toggleSectionCollapse(section.id)}
                   onFieldEdit={handleFieldEdit}
@@ -411,29 +406,24 @@ function DraggableFieldType({ fieldType }: { fieldType: typeof FIELD_TYPES[0] })
 // Sortable Section Component
 function SortableSection({ 
   section, 
-  formId, 
   isActive, 
   onActivate, 
   onTitleChange,
   onDelete, 
   onDeleteField,
-  onUpdateField,
-  editingField,
-  setEditingField,
+
   isCollapsed,
   onToggleCollapse,
   onFieldEdit
 }: { 
   section: FormSection;
-  formId: string;
   isActive: boolean;
   onActivate: () => void;
   onTitleChange: (title: string) => void;
   onDelete: () => void;
   onDeleteField: (fieldId: string) => void;
-  onUpdateField: (fieldId: string, updates: Partial<FormField>) => void;
-  editingField: { sectionId: string; fieldId: string } | null;
-  setEditingField: (field: { sectionId: string; fieldId: string } | null) => void;
+
+
   isCollapsed: boolean;
   onToggleCollapse: () => void;
   onFieldEdit: (field: FormField) => void;
@@ -580,9 +570,6 @@ function SortableSection({
                   field={field}
                   sectionId={section.id}
                   onDelete={() => onDeleteField(field.id)}
-                  onUpdate={(updates) => onUpdateField(field.id, updates)}
-                  editingField={editingField}
-                  setEditingField={setEditingField}
                   onEdit={() => onFieldEdit(field)}
                 />
               ))}
@@ -654,17 +641,11 @@ function SortableField({
   field,
   sectionId,
   onDelete,
-  onUpdate,
-  editingField,
-  setEditingField,
   onEdit
 }: {
   field: FormField;
   sectionId: string;
   onDelete: () => void;
-  onUpdate: (updates: Partial<FormField>) => void;
-  editingField: { sectionId: string; fieldId: string } | null;
-  setEditingField: (field: { sectionId: string; fieldId: string } | null) => void;
   onEdit: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useSortable({

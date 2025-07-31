@@ -9,7 +9,7 @@ interface RequestStore {
   updateRequest: (id: string, updates: Partial<Request>) => void;
   deleteRequest: (id: string) => void;
   setCurrentRequest: (request: Request | null) => void;
-  updateRequestProgress: (id: string, step: number, formData: any) => void;
+  updateRequestProgress: (id: string, step: number, formData: Record<string, unknown>) => void;
   completeRequest: (id: string) => void;
   resetRequest: (id: string) => void;
 }

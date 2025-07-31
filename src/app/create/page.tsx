@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useFormStore } from '@/stores/formStore';
-import { useWorkflowStore } from '@/stores/workflowStore';
+
 import { useRequestStore } from '@/stores/requestStore';
 import { generateId, validateEmail } from '@/lib/utils';
 import { Request } from '@/types';
@@ -13,14 +12,6 @@ import {
   Upload, 
   CheckCircle,
   AlertCircle,
-  Calendar,
-  Building,
-  User,
-  Mail,
-  Globe,
-  DollarSign,
-  Users,
-  MessageSquare,
   Sparkles,
   ArrowUp,
   File,
@@ -76,8 +67,6 @@ const requestTypes = [
 export default function CreateRequestPage() {
   const router = useRouter();
   const { addRequest } = useRequestStore();
-  const { workflows } = useWorkflowStore();
-  const { forms } = useFormStore();
   
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<RequestFormData>({
@@ -106,7 +95,7 @@ export default function CreateRequestPage() {
     confirmation: false
   });
   const [errors, setErrors] = useState<Partial<RequestFormData>>({});
-  const [isUploading, setIsUploading] = useState(false);
+
   const [showRequestTypeDropdown, setShowRequestTypeDropdown] = useState(false);
 
   const validateStep = (step: number): boolean => {
@@ -254,7 +243,7 @@ export default function CreateRequestPage() {
     }
   };
 
-  const updateFormData = (field: keyof RequestFormData, value: any) => {
+  const updateFormData = (field: keyof RequestFormData, value: string | File | boolean | string[]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
@@ -265,12 +254,10 @@ export default function CreateRequestPage() {
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      setIsUploading(true);
       // Simulate AI analysis
       setTimeout(() => {
         updateFormData('uploadedDocument', file);
         updateFormData('aiAnalysisComplete', true);
-        setIsUploading(false);
       }, 2000);
     }
   };

@@ -8,7 +8,7 @@ import { generateId } from '@/lib/utils';
 import FormBuilder from '@/components/form-builder/FormBuilder';
 import FormPreview from '@/components/form-preview/FormPreview';
 import InteractiveForm from '@/components/form-interactive/InteractiveForm';
-import { Plus, FileText, Settings, Eye, Trash2, Edit3, Copy, Download, Upload, X } from 'lucide-react';
+import { Plus, FileText, Eye, Trash2, Edit3, Copy, X } from 'lucide-react';
 
 export default function FormsPage() {
   const { forms, createFormFromTemplate, setCurrentForm, currentForm, updateForm, deleteForm, addForm } = useFormStore();

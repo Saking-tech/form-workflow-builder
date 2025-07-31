@@ -1,7 +1,7 @@
 'use client';
 
 import { Form, FormField } from '@/types';
-import { Eye, X } from 'lucide-react';
+import { X } from 'lucide-react';
 
 interface FormPreviewProps {
   form: Form;

@@ -7,15 +7,10 @@ import {
   GitBranch, 
   Plus, 
   Settings, 
-  Eye,
-  Edit3,
-  Trash2,
-  Copy,
   ArrowRight
 } from 'lucide-react';
 
 export default function Dashboard() {
-  const router = useRouter();
   const [activeTab, setActiveTab] = useState<'forms' | 'workflows'>('forms');
 
   return (

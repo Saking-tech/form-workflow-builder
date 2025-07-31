@@ -7,7 +7,6 @@ import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
   FileText,
-  Plus,
   ChevronLeft,
   ChevronRight,
   Wrench,
