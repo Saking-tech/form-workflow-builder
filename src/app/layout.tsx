@@ -8,8 +8,8 @@ import Header from "@/components/layout/Header";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Matter Intake System",
-  description: "Drag-and-Drop Form Builder & Workflow Generator",
+  title: "FW-Creator",
+  description: "Form Builder & Workflow Generator",
 };
 
 export default function RootLayout({

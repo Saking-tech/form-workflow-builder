@@ -10,7 +10,7 @@ import {
   Plus,
   ChevronLeft,
   ChevronRight,
-  Scale,
+  Wrench,
   Settings,
   Workflow,
   Menu,
@@ -80,8 +80,8 @@ export default function Sidebar() {
           {/* Header */}
           <div className="flex h-16 items-center px-4 border-b border-gray-100">
             <div className="flex items-center space-x-3">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 shadow-sm">
-                <Scale className="h-5 w-5 text-white" />
+              <div className="p-2 rounded-lg bg-gradient-to-br from-blue-700 to-indigo-500 shadow-sm">
+                <Wrench className="h-5 w-5 text-white" />
               </div>
               {!isCollapsed && (
                 <div>
