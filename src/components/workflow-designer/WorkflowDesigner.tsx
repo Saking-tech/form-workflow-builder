@@ -115,13 +115,13 @@ export default function WorkflowDesigner({ workflow, onSave }: WorkflowDesignerP
     setShowFormModal(false);
   };
 
-  const addDecisionNode = () => {
+  const addStartNode = () => {
     const newNode: Node = {
       id: generateId(),
-      type: 'decisionNode',
+      type: 'startNode',
       position: { x: 250, y: 100 + nodes.length * 100 },
       data: {
-        label: 'Decision',
+        label: 'Start',
         status: 'pending'
       }
     };
@@ -303,17 +303,17 @@ export default function WorkflowDesigner({ workflow, onSave }: WorkflowDesignerP
         <div className="flex items-center space-x-2">
           <button
             onClick={() => addFormNode()}
-            className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            className="flex items-center px-3 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add Form
           </button>
           <button
-            onClick={addDecisionNode}
-            className="flex items-center px-3 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700"
+            onClick={addStartNode}
+            className="flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Add Decision
+            Add Start
           </button>
           <button
             onClick={addEndNode}
@@ -324,7 +324,7 @@ export default function WorkflowDesigner({ workflow, onSave }: WorkflowDesignerP
           </button>
           <button
             onClick={saveWorkflow}
-            className="flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+            className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
           >
             <Save className="w-4 h-4 mr-2" />
             Save
