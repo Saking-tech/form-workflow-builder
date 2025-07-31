@@ -98,7 +98,7 @@ export default function FormsPage() {
       <div className="h-full flex flex-col">
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Form Builder</h1>
+            <p className="text-2xl font-bold text-gray-900">Form Builder</p>
             <p className="text-gray-600">Design your form with drag-and-drop sections</p>
           </div>
           <div className="flex items-center space-x-3">
@@ -110,7 +110,7 @@ export default function FormsPage() {
             </button>
             <button 
               onClick={handleSaveForm}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-500 text-white rounded-md hover:bg-blue-900 hover:from-blue-800 hover:to-indigo-600"
             >
               Save Form
             </button>

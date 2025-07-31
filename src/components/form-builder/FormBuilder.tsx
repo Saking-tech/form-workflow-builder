@@ -393,16 +393,16 @@ function DraggableFieldType({ fieldType }: { fieldType: typeof FIELD_TYPES[0] })
       style={style}
       {...attributes}
       {...listeners}
-      className="p-3 bg-white border border-gray-200 rounded-md cursor-move hover:border-blue-300 hover:shadow-sm transition-all"
+      className="p-3 bg-gradient-to-r from-blue-100 to-indigo-100 border border-gray-200 rounded-md cursor-move hover:border-blue-400 hover:bg-blue-200 hover:shadow-sm transition-all"
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center">
-          <span className="text-lg mr-2">{fieldType.icon}</span>
+          {/* <span className="text-lg mr-2">{fieldType.icon}</span> */}
           <span className="text-sm font-medium text-gray-700">{fieldType.label}</span>
         </div>
-        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+        {/* <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
           {fieldType.defaultSize}
-        </span>
+        </span> */}
       </div>
     </div>
   );

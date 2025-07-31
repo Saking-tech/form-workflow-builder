@@ -308,20 +308,20 @@ export default function WorkflowDesigner({ workflow, onSave }: WorkflowDesignerP
             <Plus className="w-4 h-4 mr-2" />
             Add Form
           </button>
-          <button
+          {/* <button
             onClick={addStartNode}
             className="flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add Start
-          </button>
-          <button
+          </button> */}
+          {/* <button
             onClick={addEndNode}
             className="flex items-center px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add End
-          </button>
+          </button> */}
           <button
             onClick={saveWorkflow}
             className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
@@ -368,11 +368,11 @@ export default function WorkflowDesigner({ workflow, onSave }: WorkflowDesignerP
           {contextMenu && (
             <div
               style={{ position: 'fixed', top: contextMenu.y, left: contextMenu.x, zIndex: 1000 }}
-              className="bg-white border border-gray-300 rounded shadow p-2"
+              className="text-white bg-red-500 hover:bg-red-700 border border-red-300 rounded shadow p-2"
               onClick={handleDeleteContext}
               onContextMenu={e => e.preventDefault()}
             >
-              <button className="text-red-600 font-semibold">Delete</button>
+              <button className="text-white font-semibold">Delete</button>
             </div>
           )}
         </ReactFlow>

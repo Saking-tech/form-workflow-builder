@@ -31,10 +31,10 @@ function DraggableFieldType({ fieldType }: { fieldType: FieldType }) {
       {...listeners}
       {...attributes}
       style={style}
-      className="p-3 mb-2 bg-white border border-gray-200 rounded-md cursor-move hover:shadow-md transition-shadow"
+      className="p-3 mb-2 bg-green-200 border border-gray-200 rounded-md cursor-move hover:shadow-md transition-shadow"
     >
       <div className="flex items-center space-x-2">
-        <span className="text-lg">{fieldType.icon}</span>
+        {/* <span className="text-lg">{fieldType.icon}</span> */}
         <span className="text-sm font-medium text-gray-700">{fieldType.label}</span>
       </div>
     </div>

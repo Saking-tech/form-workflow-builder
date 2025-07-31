@@ -17,9 +17,9 @@ import {
 } from 'lucide-react';
 
 export default function RequestsPage() {
-  const { requests, updateRequest, deleteRequest } = useRequestStore();
-  const { workflows } = useWorkflowStore();
-  const { forms } = useFormStore();
+  const { requests = [], updateRequest, deleteRequest } = useRequestStore();
+  const { workflows = [] } = useWorkflowStore();
+  const { forms = [] } = useFormStore();
   const [selectedRequest, setSelectedRequest] = useState<string | null>(null);
   const [showExecution, setShowExecution] = useState(false);
   const [showSettingsMenu, setShowSettingsMenu] = useState<string | null>(null);
@@ -27,6 +27,17 @@ export default function RequestsPage() {
   const [editFormData, setEditFormData] = useState({
     title: ''
   });
+
+  // Add loading state to prevent errors during initial render
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Set loading to false after a short delay to ensure stores are initialized
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleExecuteWorkflow = (requestId: string) => {
     setSelectedRequest(requestId);
@@ -163,6 +174,20 @@ export default function RequestsPage() {
     );
   }
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="p-4 md:p-6 space-y-4 md:space-y-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading requests...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 md:p-6 space-y-4 md:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -183,7 +208,7 @@ export default function RequestsPage() {
           {requests && requests.length > 0 ? (
             requests.map((request) => {
               const workflow = workflows.find(w => w.id === request.workflowId);
-                                const statusIcon = getStatusIcon(request.status);
+              const statusIcon = getStatusIcon(request.status || 'pending');
               
               return (
                 <div key={request.id} className="p-4 border-b border-gray-200">
@@ -308,7 +333,7 @@ export default function RequestsPage() {
               {requests && requests.length > 0 ? (
                 requests.map((request) => {
                   const workflow = workflows.find(w => w.id === request.workflowId);
-                  const statusIcon = getStatusIcon(request.status);
+                  const statusIcon = getStatusIcon(request.status || 'pending');
                   
                   return (
                     <tr key={request.id} className="hover:bg-gray-50">
