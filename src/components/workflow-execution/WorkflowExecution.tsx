@@ -4,10 +4,8 @@ import { useState, useEffect } from 'react';
 import { useFormStore } from '@/stores/formStore';
 import { useWorkflowStore } from '@/stores/workflowStore';
 import { useRequestStore } from '@/stores/requestStore';
-import { Workflow, WorkflowNode, Request, Form } from '@/types';
+import { Request, Form } from '@/types';
 import { 
-  Play, 
-  Pause, 
   SkipForward, 
   CheckCircle, 
   Clock, 
@@ -20,10 +18,9 @@ import InteractiveForm from '@/components/form-interactive/InteractiveForm';
 interface WorkflowExecutionProps {
   request: Request;
   onComplete?: () => void;
-  onClose?: () => void;
 }
 
-export default function WorkflowExecution({ request, onComplete, onClose }: WorkflowExecutionProps) {
+export default function WorkflowExecution({ request, onComplete }: WorkflowExecutionProps) {
   const { workflows } = useWorkflowStore();
   const { forms } = useFormStore();
   const { updateRequest, resetRequest } = useRequestStore();
@@ -31,8 +28,6 @@ export default function WorkflowExecution({ request, onComplete, onClose }: Work
   const workflow = workflows.find(w => w.id === request.workflowId);
   const [currentStepIndex, setCurrentStepIndex] = useState(request.currentStep);
   const [executionData, setExecutionData] = useState<Record<string, unknown>>(request.formData || {});
-  const [isExecuting, setIsExecuting] = useState(false);
-  const [completedSteps, setCompletedSteps] = useState<string[]>([]);
 
   const currentStep = workflow?.nodes[currentStepIndex];
   const currentForm = currentStep?.formId ? forms.find(f => f.id === currentStep.formId) : null;
@@ -55,9 +50,6 @@ export default function WorkflowExecution({ request, onComplete, onClose }: Work
       [stepId]: stepData
     }));
 
-    // Mark step as completed
-    setCompletedSteps(prev => [...prev, stepId]);
-
     // Move to next step
     if (currentStepIndex < (workflow?.nodes.length || 0) - 1) {
       setCurrentStepIndex(prev => prev + 1);
@@ -72,7 +64,6 @@ export default function WorkflowExecution({ request, onComplete, onClose }: Work
       setTimeout(() => {
         resetRequest(request.id);
         setCurrentStepIndex(0);
-        setCompletedSteps([]);
         setExecutionData({});
       }, 2000);
       
@@ -100,109 +91,101 @@ export default function WorkflowExecution({ request, onComplete, onClose }: Work
 
   const getStepIcon = (stepIndex: number) => {
     const status = getStepStatus(stepIndex);
-    const step = workflow?.nodes[stepIndex];
-    
-    if (status === 'completed') return <CheckCircle className="w-5 h-5 text-green-600" />;
-    if (status === 'active') return <Play className="w-5 h-5 text-blue-600" />;
-    return <Clock className="w-5 h-5 text-gray-400" />;
+    switch (status) {
+      case 'completed':
+        return <CheckCircle className="w-5 h-5 text-green-500" />;
+      case 'active':
+        return <AlertCircle className="w-5 h-5 text-blue-500" />;
+      default:
+        return <Clock className="w-5 h-5 text-gray-400" />;
+    }
   };
 
   if (!workflow) {
     return (
-      <div className="p-6 text-center">
-        <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">Workflow Not Found</h3>
-        <p className="text-gray-600">The workflow for this request could not be found.</p>
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Workflow Not Found</h3>
+          <p className="text-gray-600">The requested workflow could not be found.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentStep) {
+    return (
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Invalid Step</h3>
+          <p className="text-gray-600">The current step is invalid or not found.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col">
-      {/* Header and Progress Steps */}
-      <div className="p-4 bg-gray-50 border-b border-gray-200">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">Workflow Execution</h2>
-            <p className="text-sm text-gray-600">{request.title}</p>
-          </div>
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => {
-                resetRequest(request.id);
-                setCurrentStepIndex(0);
-                setCompletedSteps([]);
-                setExecutionData({});
-              }}
-              className="px-4 py-2 text-blue-600 border border-blue-300 rounded-md hover:bg-blue-50"
-            >
-              Reset Workflow
-            </button>
-            <button
-              onClick={onClose}
-              className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
-            >
-              Close
-            </button>
+    <div className="bg-white border border-gray-200 rounded-lg">
+      {/* Header */}
+      <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900">{workflow.name}</h3>
+          <p className="text-sm text-gray-600">Step {currentStepIndex + 1} of {workflow.nodes.length}</p>
+        </div>
+        <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1">
+            {workflow.nodes.map((_, index) => (
+              <div
+                key={index}
+                className={`w-2 h-2 rounded-full ${
+                  getStepStatus(index) === 'completed'
+                    ? 'bg-green-500'
+                    : getStepStatus(index) === 'active'
+                    ? 'bg-blue-500'
+                    : 'bg-gray-300'
+                }`}
+              />
+            ))}
           </div>
         </div>
+      </div>
 
-        {/* Progress Steps */}
-        <div className="flex items-center space-x-4 overflow-x-auto">
+      {/* Progress Steps */}
+      <div className="p-6">
+        <div className="flex items-center space-x-4 mb-6">
           {workflow.nodes.map((node, index) => (
             <div key={node.id} className="flex items-center space-x-2">
-              <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
-                getStepStatus(index) === 'completed' ? 'bg-green-100' :
-                getStepStatus(index) === 'active' ? 'bg-blue-100' : 'bg-gray-100'
+              {getStepIcon(index)}
+              <span className={`text-sm ${
+                getStepStatus(index) === 'completed'
+                  ? 'text-green-600 font-medium'
+                  : getStepStatus(index) === 'active'
+                  ? 'text-blue-600 font-medium'
+                  : 'text-gray-500'
               }`}>
-                {getStepIcon(index)}
-              </div>
-              <div className="text-sm">
-                <div className={`font-medium ${
-                  getStepStatus(index) === 'completed' ? 'text-green-600' :
-                  getStepStatus(index) === 'active' ? 'text-blue-600' : 'text-gray-500'
-                }`}>
-                  {node.formId ? forms.find(f => f.id === node.formId)?.name : 'Step ' + (index + 1)}
-                </div>
-                <div className="text-xs text-gray-500 capitalize">{getStepStatus(index)}</div>
-              </div>
+                Step {index + 1}
+              </span>
               {index < workflow.nodes.length - 1 && (
-                <ArrowRight className="w-4 h-4 text-gray-300" />
+                <ArrowRight className="w-4 h-4 text-gray-400" />
               )}
             </div>
           ))}
         </div>
-      </div>
 
-      {/* Current Step Content */}
-      <div className="flex-1 p-6 overflow-y-auto">
-        {currentStep && (
-          <div className="max-w-4xl mx-auto">
-            <div className="mb-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Step {currentStepIndex + 1}: {currentForm?.name || 'Process Step'}
-              </h3>
-              <p className="text-gray-600">
-                {currentForm?.description || 'Complete this step to continue the workflow'}
-              </p>
-            </div>
-
-            {currentForm ? (
-              <FormExecution
-                form={currentForm}
-                initialData={executionData[currentStep.id] as Record<string, unknown> || {} as Record<string, unknown>}
-                onComplete={handleStepComplete}
-                onSkip={handleStepSkip}
-              />
-            ) : (
-              <DecisionExecution
-                node={currentStep}
-                onComplete={handleStepComplete}
-                onSkip={handleStepSkip}
-              />
-            )}
-          </div>
-        )}
+        {/* Current Step Content */}
+        <div className="bg-gray-50 rounded-lg p-6">
+          {currentForm ? (
+            <FormExecution 
+              form={currentForm}
+              onComplete={handleStepComplete}
+            />
+          ) : (
+            <DecisionExecution 
+              onComplete={handleStepComplete}
+            />
+          )}
+        </div>
       </div>
 
       {/* Navigation */}
@@ -238,13 +221,11 @@ export default function WorkflowExecution({ request, onComplete, onClose }: Work
 
 // Form Execution Component
 interface FormExecutionProps {
-  form: Form; // Use the proper Form type
-  initialData: Record<string, unknown>;
+  form: Form;
   onComplete: (data: Record<string, unknown>) => void;
-  onSkip: () => void;
 }
 
-function FormExecution({ form, initialData, onComplete, onSkip }: FormExecutionProps) {
+function FormExecution({ form, onComplete }: FormExecutionProps) {
   const handleFormSubmit = (data: Record<string, unknown>) => {
     onComplete(data);
   };
@@ -262,16 +243,11 @@ function FormExecution({ form, initialData, onComplete, onSkip }: FormExecutionP
 
 // Decision Execution Component
 interface DecisionExecutionProps {
-  node: WorkflowNode;
   onComplete: (data: Record<string, unknown>) => void;
-  onSkip: () => void;
 }
 
-function DecisionExecution({ node, onComplete, onSkip }: DecisionExecutionProps) {
-  const [decision, setDecision] = useState('');
-
+function DecisionExecution({ onComplete }: DecisionExecutionProps) {
   const handleDecision = (value: string) => {
-    setDecision(value);
     onComplete({ decision: value });
   };
 
@@ -300,8 +276,6 @@ function DecisionExecution({ node, onComplete, onSkip }: DecisionExecutionProps)
           Send for Review
         </button>
       </div>
-
-
     </div>
   );
 }

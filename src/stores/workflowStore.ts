@@ -17,7 +17,7 @@ interface WorkflowStore {
 }
 
 export const useWorkflowStore = create<WorkflowStore>(
-  persistStore<WorkflowStore>('workflowStore', (set, get) => ({
+  persistStore<WorkflowStore>('workflowStore', (set) => ({
   workflows: [],
   currentWorkflow: null,
   

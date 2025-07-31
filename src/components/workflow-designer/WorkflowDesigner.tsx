@@ -20,9 +20,9 @@ import {
 import { useFormStore } from '@/stores/formStore';
 import { useWorkflowStore } from '@/stores/workflowStore';
 import { useRequestStore } from '@/stores/requestStore';
-import { Workflow, WorkflowNode, Request } from '@/types';
+import { Workflow, Request } from '@/types';
 import { generateId } from '@/lib/utils';
-import { Plus, Save, Play, Settings, X, FileText } from 'lucide-react';
+import { Plus, Save, Play, X, FileText } from 'lucide-react';
 import FormNode from '@/components/workflow-designer/FormNode';
 import StartNode from '@/components/workflow-designer/StartNode';
 import EndNode from '@/components/workflow-designer/EndNode';
@@ -115,33 +115,7 @@ export default function WorkflowDesigner({ workflow, onSave }: WorkflowDesignerP
     setShowFormModal(false);
   };
 
-  const addStartNode = () => {
-    const newNode: Node = {
-      id: generateId(),
-      type: 'startNode',
-      position: { x: 250, y: 100 + nodes.length * 100 },
-      data: {
-        label: 'Start',
-        status: 'pending'
-      }
-    };
 
-    setNodes((nds) => [...nds, newNode]);
-  };
-
-  const addEndNode = () => {
-    const newNode: Node = {
-      id: generateId(),
-      type: 'endNode',
-      position: { x: 250, y: 100 + nodes.length * 100 },
-      data: {
-        label: 'End',
-        status: 'pending'
-      }
-    };
-
-    setNodes((nds) => [...nds, newNode]);
-  };
 
   const saveWorkflow = () => {
     const workflowData: Workflow = {

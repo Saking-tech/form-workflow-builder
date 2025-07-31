@@ -47,10 +47,7 @@ export default function RequestsPage() {
     setSelectedRequest(null);
   };
 
-  const handleExecutionClose = () => {
-    setShowExecution(false);
-    setSelectedRequest(null);
-  };
+
 
   const getRequestWorkflow = (requestId: string) => {
     const request = requests.find(r => r.id === requestId);
@@ -130,7 +127,7 @@ export default function RequestsPage() {
           <div className="text-center">
             <p className="text-red-600">Workflow or form not found</p>
             <button
-              onClick={handleExecutionClose}
+              onClick={handleExecutionComplete}
               className="mt-4 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
             >
               Close
@@ -151,7 +148,7 @@ export default function RequestsPage() {
           </div>
           <div className="flex items-center space-x-2">
             <button
-              onClick={handleExecutionClose}
+              onClick={handleExecutionComplete}
               className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
             >
               Close
@@ -162,7 +159,6 @@ export default function RequestsPage() {
           <WorkflowExecution
             request={requests.find(r => r.id === selectedRequest) || requests[0] || { id: '', title: '', workflowId: '', currentStep: 0, status: 'pending', formData: {}, createdAt: new Date() }}
             onComplete={handleExecutionComplete}
-            onClose={handleExecutionClose}
           />
         </div>
       </div>

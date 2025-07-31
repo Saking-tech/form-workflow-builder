@@ -30,7 +30,6 @@ export const getBorderColor = (type: string = 'default') => getColor(`border.${t
 
 // Component-specific colors
 export const getButtonColors = (variant: 'primary' | 'secondary' | 'success' | 'danger') => {
-  const buttonColors = getColor(`components.button.${variant}`);
   return {
     background: getColor(`components.button.${variant}.background`),
     backgroundHover: getColor(`components.button.${variant}.backgroundHover`),

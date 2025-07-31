@@ -356,7 +356,6 @@ export default function FormBuilder({ form, onFormChange }: FormBuilderProps) {
       {/* Field Edit Modal */}
       {showFieldEditModal && editingField && (
         <FieldEditModal
-          field={editingField}
           fieldData={fieldEditData}
           onSave={handleFieldSave}
           onCancel={handleFieldCancel}
@@ -592,16 +591,7 @@ function SortableSection({
   );
 }
 
-// Drop Indicator Component
-function DropIndicator({ isOver }: { isOver: boolean }) {
-  if (!isOver) return null;
-  
-  return (
-    <div className="absolute inset-0 bg-blue-100/50 border-2 border-blue-300 rounded-xl flex items-center justify-center z-10">
-      <div className="text-blue-600 text-sm font-medium">Drop here to reorder</div>
-    </div>
-  );
-}
+
 
 // Section Drop Zone Component
 function SectionDropZone({ sectionId }: { sectionId: string }) {
@@ -758,188 +748,15 @@ function SortableField({
   );
 }
 
-// Field Editor Component
-function FieldEditor({
-  field,
-  onSave,
-  onCancel
-}: {
-  field: FormField;
-  onSave: (updates: Partial<FormField>) => void;
-  onCancel: () => void;
-}) {
-  const [formData, setFormData] = useState({
-    label: field.label,
-    placeholder: field.placeholder || '',
-    required: field.required,
-    size: field.size,
-    options: field.options || []
-  });
 
-  const [newOption, setNewOption] = useState({ label: '', value: '' });
-
-  const handleSave = () => {
-    onSave({
-      label: formData.label,
-      placeholder: formData.placeholder,
-      required: formData.required,
-      size: formData.size,
-      options: formData.options
-    });
-  };
-
-  const addOption = () => {
-    if (newOption.label && newOption.value) {
-      setFormData(prev => ({
-        ...prev,
-        options: [...prev.options, { ...newOption }]
-      }));
-      setNewOption({ label: '', value: '' });
-    }
-  };
-
-  const removeOption = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      options: prev.options.filter((_, i) => i !== index)
-    }));
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Label</label>
-                     <input
-             type="text"
-             value={formData.label}
-             onChange={(e) => setFormData(prev => ({ ...prev, label: e.target.value }))}
-             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-           />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Placeholder</label>
-                     <input
-             type="text"
-             value={formData.placeholder}
-             onChange={(e) => setFormData(prev => ({ ...prev, placeholder: e.target.value }))}
-             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-           />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Size</label>
-          <select
-            value={formData.size}
-            onChange={(e) => setFormData(prev => ({ ...prev, size: e.target.value as '1x1' | '1x2' | '1x3' }))}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-          >
-            <option value="1x1">1 Column</option>
-            <option value="1x2">2 Columns</option>
-            <option value="1x3">3 Columns</option>
-          </select>
-        </div>
-      </div>
-
-      <div className="flex items-center space-x-2">
-        <input
-          type="checkbox"
-          id="required"
-          checked={formData.required}
-          onChange={(e) => setFormData(prev => ({ ...prev, required: e.target.checked }))}
-          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-        />
-        <label htmlFor="required" className="text-sm font-medium text-gray-700">Required field</label>
-      </div>
-
-      {(field.type === 'dropdown' || field.type === 'radio' || field.type === 'checkbox') && (
-        <div className="space-y-3">
-          <label className="block text-sm font-medium text-gray-700">Options</label>
-          <div className="space-y-2">
-            {formData.options.map((option, index) => (
-              <div key={index} className="flex items-center space-x-2">
-                                 <input
-                   type="text"
-                   value={option.label}
-                   onChange={(e) => {
-                     const newOptions = [...formData.options];
-                     newOptions[index].label = e.target.value;
-                     setFormData(prev => ({ ...prev, options: newOptions }));
-                   }}
-                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                   placeholder="Option label"
-                 />
-                 <input
-                   type="text"
-                   value={option.value}
-                   onChange={(e) => {
-                     const newOptions = [...formData.options];
-                     newOptions[index].value = e.target.value;
-                     setFormData(prev => ({ ...prev, options: newOptions }));
-                   }}
-                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                   placeholder="Option value"
-                 />
-                <button
-                  onClick={() => removeOption(index)}
-                  className="p-2 text-red-400 hover:text-red-600"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
-            <div className="flex items-center space-x-2">
-                             <input
-                 type="text"
-                 value={newOption.label}
-                 onChange={(e) => setNewOption(prev => ({ ...prev, label: e.target.value }))}
-                 className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                 placeholder="New option label"
-               />
-               <input
-                 type="text"
-                 value={newOption.value}
-                 onChange={(e) => setNewOption(prev => ({ ...prev, value: e.target.value }))}
-                 className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                 placeholder="New option value"
-               />
-              <button
-                onClick={addOption}
-                className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="flex items-center justify-end space-x-2">
-        <button
-          onClick={onCancel}
-          className="px-3 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
-        >
-          <X className="w-4 h-4" />
-        </button>
-        <button
-          onClick={handleSave}
-          className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          <Check className="w-4 h-4" />
-        </button>
-      </div>
-    </div>
-  );
-}
 
 // Field Edit Modal Component
 function FieldEditModal({
-  field,
   fieldData,
   onSave,
   onCancel,
   onClose
 }: {
-  field: { sectionId: string; fieldId: string };
   fieldData: {
     label: string;
     placeholder: string;

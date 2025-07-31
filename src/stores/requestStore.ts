@@ -15,7 +15,7 @@ interface RequestStore {
 }
 
 export const useRequestStore = create<RequestStore>(
-  persistStore<RequestStore>('requestStore', (set, get) => ({
+  persistStore<RequestStore>('requestStore', (set) => ({
   requests: [],
   currentRequest: null,
   

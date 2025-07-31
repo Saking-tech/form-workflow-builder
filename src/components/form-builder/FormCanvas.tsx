@@ -1,12 +1,11 @@
 'use client';
 
-import { useDroppable, DragEndEvent } from '@dnd-kit/core';
+import { useDroppable } from '@dnd-kit/core';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useState } from 'react';
 import { useFormStore } from '@/stores/formStore';
 import { FormField } from '@/types';
-import { generateId } from '@/lib/utils';
 import { Trash2, GripVertical } from 'lucide-react';
 
 interface FormFieldRendererProps {
@@ -154,36 +153,15 @@ interface FormCanvasProps {
 }
 
 export default function FormCanvas({ formId }: FormCanvasProps) {
-  const { forms, addFieldToSection, updateFieldInSection, removeFieldFromSection } = useFormStore();
+  const { forms, updateFieldInSection, removeFieldFromSection } = useFormStore();
   const form = forms.find(f => f.id === formId);
-  const [isOver, setIsOver] = useState(false);
+  const [isOver] = useState(false);
 
   const { setNodeRef } = useDroppable({
     id: 'form-canvas',
   });
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    
-    if (over && over.id === 'form-canvas' && active.data?.current?.type) {
-      const fieldType = active.data.current.type;
-      const newField: FormField = {
-        id: generateId(),
-        type: fieldType,
-        label: `New ${fieldType} field`,
-        placeholder: `Enter ${fieldType}...`,
-        required: false,
-        size: '1x1', // Default size for new fields
-        order: 0
-      };
-      
-      // Add to the first section if it exists, otherwise we need to handle this differently
-      if (form && form.sections.length > 0) {
-        addFieldToSection(formId, form.sections[0].id, newField);
-      }
-    }
-    setIsOver(false);
-  };
+
 
   if (!form) {
     return <div className="p-6 text-center text-gray-500">Form not found</div>;
@@ -203,9 +181,7 @@ export default function FormCanvas({ formId }: FormCanvasProps) {
             ? 'border-blue-400 bg-blue-50' 
             : 'border-gray-300 bg-gray-50'
         }`}
-        onDrop={(e) => {
-          // Handle native drop event if needed
-        }}
+
       >
         {form.sections.length === 0 ? (
           <div className="text-center text-gray-500 py-8">
