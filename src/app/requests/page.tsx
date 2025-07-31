@@ -675,7 +675,7 @@ export default function RequestsPage() {
       {/* Create Request Modal */}
       {showCreateRequestModal && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white/95 backdrop-blur-md border border-gray-200/50 rounded-2xl shadow-2xl w-full max-w-md">
+          <div className="bg-gradient-to-r from-blue-200 to-indigo-100 border border-gray-200/50 rounded-2xl shadow-2xl w-full max-w-md">
             <div className="px-6 py-4 border-b border-gray-200/50">
               <h2 className="text-lg md:text-xl font-semibold text-gray-900">Create New Request</h2>
               <p className="text-sm text-gray-600 mt-1">Start a new workflow execution</p>
@@ -720,7 +720,7 @@ export default function RequestsPage() {
               <button
                 onClick={handleCreateRequest}
                 disabled={!newRequestData.title.trim() || !newRequestData.workflowId}
-                className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md transition-all duration-200 font-medium"
+                className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md transition-all duration-200 font-medium"
               >
                 Create Request
               </button>

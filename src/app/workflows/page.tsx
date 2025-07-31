@@ -325,7 +325,7 @@ export default function WorkflowsPage() {
       {/* Create Workflow Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white/95 backdrop-blur-md border border-gray-200/50 rounded-2xl shadow-2xl w-full max-w-md">
+          <div className="bg-gradient-to-r from-blue-200 to-indigo-100 border border-gray-200/50 rounded-2xl shadow-2xl w-full max-w-md">
             <div className="px-6 py-4 border-b border-gray-200/50">
               <h2 className="text-lg md:text-xl font-semibold text-gray-900">Create New Workflow</h2>
               <p className="text-sm text-gray-600 mt-1">Design a custom workflow process</p>
