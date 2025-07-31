@@ -104,48 +104,190 @@ export default function RequestsPage() {
   // Close settings menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (showSettingsMenu && !(event.target as Element).closest('.settings-menu')) {
+      const target = event.target as Element;
+      if (!target.closest('.settings-menu')) {
         setShowSettingsMenu(null);
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showSettingsMenu]);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   if (showExecution && selectedRequest) {
-    const request = requests.find(r => r.id === selectedRequest);
-    if (!request) return null;
+    const workflow = getRequestWorkflow(selectedRequest);
+    const form = getRequestForm(selectedRequest);
+    
+    if (!workflow || !form) {
+      return (
+        <div className="p-4 md:p-6">
+          <div className="text-center">
+            <p className="text-red-600">Workflow or form not found</p>
+            <button
+              onClick={handleExecutionClose}
+              className="mt-4 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      );
+    }
 
     return (
-      <div className="h-full">
-        <WorkflowExecution
-          request={request}
-          onComplete={handleExecutionComplete}
-          onClose={handleExecutionClose}
-        />
+      <div className="h-full flex flex-col">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Workflow Execution</h2>
+            <p className="text-sm text-gray-600">
+              Executing: {workflow?.name || 'Unknown'} - Step {selectedRequest ? (requests.find(r => r.id === selectedRequest)?.currentStep ?? 0) + 1 : 0}
+            </p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={handleExecutionClose}
+              className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+                 <div className="flex-1">
+           <WorkflowExecution
+             request={requests.find(r => r.id === selectedRequest) || requests[0] || { id: '', title: '', workflowId: '', currentStep: 0, status: 'pending', formData: {}, createdAt: new Date() }}
+             onComplete={handleExecutionComplete}
+             onClose={handleExecutionClose}
+           />
+         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">My Requests</h1>
-          <p className="text-gray-600">Track and manage your workflow requests</p>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">My Requests</h1>
+          <p className="text-sm md:text-base text-gray-600">Track and manage your workflow requests</p>
         </div>
       </div>
 
       {/* All Requests Table */}
       <div className="bg-white rounded-lg border border-gray-200">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">All Requests</h2>
+        <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-200">
+          <h2 className="text-base md:text-lg font-semibold text-gray-900">All Requests</h2>
         </div>
         
-        <div className="overflow-x-auto">
+        {/* Mobile Cards View */}
+        <div className="md:hidden">
+          {requests && requests.length > 0 ? (
+            requests.map((request) => {
+              const workflow = workflows.find(w => w.id === request.workflowId);
+                                const statusIcon = getStatusIcon(request.status);
+              
+              return (
+                <div key={request.id} className="p-4 border-b border-gray-200">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      {editingRequest === request.id ? (
+                        <div className="mb-2">
+                          <input
+                            type="text"
+                            value={editFormData.title}
+                            onChange={(e) => setEditFormData({ title: e.target.value })}
+                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                          />
+                          <div className="flex space-x-2 mt-2">
+                            <button
+                              onClick={handleSaveEdit}
+                              className="px-2 py-1 bg-blue-600 text-white rounded text-xs"
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={handleCancelEdit}
+                              className="px-2 py-1 bg-gray-300 text-gray-700 rounded text-xs"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <h3 className="text-sm font-medium text-gray-900 mb-1">{request.title}</h3>
+                      )}
+                      <p className="text-xs text-gray-500 mb-2">
+                        Workflow: {workflow?.name || 'Unknown'}
+                      </p>
+                      <div className="flex items-center space-x-4 text-xs text-gray-500">
+                        <span>Step {request.currentStep + 1}</span>
+                        <span>{formatDate(request.createdAt)}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(request.status)}`}>
+                        <span className="mr-1">{statusIcon}</span>
+                        {request.status}
+                      </span>
+                      <div className="relative settings-menu">
+                        <button
+                          onClick={() => toggleSettingsMenu(request.id)}
+                          className="p-1 rounded hover:bg-gray-100"
+                        >
+                          <MoreHorizontal className="w-4 h-4 text-gray-500" />
+                        </button>
+                        {showSettingsMenu === request.id && (
+                          <div className="absolute right-0 top-8 bg-white border border-gray-200 rounded-md shadow-lg z-10 min-w-[120px]">
+                            <button
+                              onClick={() => handleEditRequest(request.id)}
+                              className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center"
+                            >
+                              <Edit className="w-3 h-3 mr-2" />
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteRequest(request.id)}
+                              className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center text-red-600"
+                            >
+                              <Trash2 className="w-3 h-3 mr-2" />
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => handleExecuteWorkflow(request.id)}
+                      className="flex-1 flex items-center justify-center px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-xs"
+                    >
+                      <Play className="w-3 h-3 mr-1" />
+                      Execute
+                    </button>
+                    <button
+                      onClick={() => handleViewRequest(request.id)}
+                      className="flex-1 flex items-center justify-center px-3 py-1.5 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 text-xs"
+                    >
+                      <Eye className="w-3 h-3 mr-1" />
+                      View
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="text-center py-8">
+              <FileText className="mx-auto h-8 w-8 text-gray-500" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No requests</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Your workflow requests will appear here.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -156,10 +298,10 @@ export default function RequestsPage() {
                   Workflow
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Current Step
+                  Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
+                  Progress
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Created
@@ -169,34 +311,34 @@ export default function RequestsPage() {
                 </th>
               </tr>
             </thead>
-                         <tbody className="bg-white divide-y divide-gray-200">
-               {requests && requests.length > 0 ? (
-                 requests.map((request) => {
-                   const workflow = getRequestWorkflow(request.id);
-                   const currentForm = getRequestForm(request.id);
-                   
-                                       return (
-                      <tr key={request.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
+            <tbody className="bg-white divide-y divide-gray-200">
+              {requests && requests.length > 0 ? (
+                requests.map((request) => {
+                  const workflow = workflows.find(w => w.id === request.workflowId);
+                  const statusIcon = getStatusIcon(request.status);
+                  
+                  return (
+                    <tr key={request.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
                           {editingRequest === request.id ? (
-                            <div className="space-y-2">
+                            <div>
                               <input
                                 type="text"
                                 value={editFormData.title}
                                 onChange={(e) => setEditFormData({ title: e.target.value })}
-                                className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md"
-                                placeholder="Request title"
+                                className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
                               />
-                              <div className="flex space-x-2">
+                              <div className="flex space-x-2 mt-2">
                                 <button
                                   onClick={handleSaveEdit}
-                                  className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700"
+                                  className="px-2 py-1 bg-blue-600 text-white rounded text-xs"
                                 >
                                   Save
                                 </button>
                                 <button
                                   onClick={handleCancelEdit}
-                                  className="px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600"
+                                  className="px-2 py-1 bg-gray-300 text-gray-700 rounded text-xs"
                                 >
                                   Cancel
                                 </button>
@@ -208,130 +350,122 @@ export default function RequestsPage() {
                               <div className="text-sm text-gray-500">ID: {request.id}</div>
                             </div>
                           )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            {workflow?.name || 'Unknown Workflow'}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {workflow?.nodes.length || 0} steps
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            {currentForm?.name || `Step ${request.currentStep + 1}`}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {request.currentStep + 1} of {workflow?.nodes.length || 0}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(request.status)}`}>
-                            {getStatusIcon(request.status)}
-                            <span className="ml-1 capitalize">{request.status}</span>
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {formatDate(request.createdAt)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <div className="flex items-center space-x-2">
-                            {request.status !== 'completed' && request.status !== 'cancelled' && (
-                              <button
-                                onClick={() => handleExecuteWorkflow(request.id)}
-                                className="flex items-center px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                              >
-                                <Play className="w-4 h-4 mr-1" />
-                                Execute
-                              </button>
-                            )}
-                            <button 
-                              onClick={() => handleViewRequest(request.id)}
-                              className="flex items-center px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{workflow?.name || 'Unknown'}</div>
+                        <div className="text-sm text-gray-500">{workflow?.description || ''}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(request.status)}`}>
+                           <span className="mr-1">{statusIcon}</span>
+                           {request.status}
+                         </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">Step {request.currentStep + 1}</div>
+                        <div className="text-sm text-gray-500">
+                          {workflow ? `${workflow.nodes.length} total steps` : ''}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {formatDate(request.createdAt)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => handleExecuteWorkflow(request.id)}
+                            className="flex items-center px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                          >
+                            <Play className="w-4 h-4 mr-1" />
+                            Execute
+                          </button>
+                          <button
+                            onClick={() => handleViewRequest(request.id)}
+                            className="flex items-center px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+                          >
+                            <Eye className="w-4 h-4 mr-1" />
+                            View
+                          </button>
+                          <div className="relative settings-menu">
+                            <button
+                              onClick={() => toggleSettingsMenu(request.id)}
+                              className="p-1 rounded hover:bg-gray-100"
                             >
-                              <Eye className="w-4 h-4 mr-1" />
-                              View
+                              <MoreHorizontal className="w-4 h-4 text-gray-500" />
                             </button>
-                            <div className="relative settings-menu">
-                              <button 
-                                onClick={() => toggleSettingsMenu(request.id)}
-                                className="flex items-center px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
-                              >
-                                <MoreHorizontal className="w-4 h-4" />
-                              </button>
-                              {showSettingsMenu === request.id && (
-                                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-10">
-                                  <div className="py-1">
-                                    <button
-                                      onClick={() => handleEditRequest(request.id)}
-                                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                    >
-                                      <Edit className="w-4 h-4 mr-2" />
-                                      Edit
-                                    </button>
-                                    <button
-                                      onClick={() => handleDeleteRequest(request.id)}
-                                      className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                                    >
-                                      <Trash2 className="w-4 h-4 mr-2" />
-                                      Delete
-                                    </button>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
+                            {showSettingsMenu === request.id && (
+                              <div className="absolute right-0 top-8 bg-white border border-gray-200 rounded-md shadow-lg z-10 min-w-[120px]">
+                                <button
+                                  onClick={() => handleEditRequest(request.id)}
+                                  className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center"
+                                >
+                                  <Edit className="w-3 h-3 mr-2" />
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteRequest(request.id)}
+                                  className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center text-red-600"
+                                >
+                                  <Trash2 className="w-3 h-3 mr-2" />
+                                  Delete
+                                </button>
+                              </div>
+                            )}
                           </div>
-                        </td>
-                      </tr>
-                    );
-                 })
-               ) : (
-                 <tr>
-                   <td colSpan={6} className="px-6 py-12 text-center">
-                     <FileText className="mx-auto h-12 w-12 text-gray-500" />
-                     <h3 className="mt-2 text-sm font-medium text-gray-900">No requests</h3>
-                     <p className="mt-1 text-sm text-gray-500">
-                       Get started by creating a new request.
-                     </p>
-                   </td>
-                 </tr>
-               )}
-             </tbody>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan={6} className="px-6 py-8 text-center">
+                    <FileText className="mx-auto h-8 w-8 text-gray-500" />
+                    <h3 className="mt-2 text-sm font-medium text-gray-900">No requests</h3>
+                    <p className="mt-1 text-sm text-gray-500">
+                      Your workflow requests will appear here.
+                    </p>
+                  </td>
+                </tr>
+              )}
+            </tbody>
           </table>
-                 </div>
-       </div>
+        </div>
+      </div>
 
       {/* Workflow Templates */}
       <div className="bg-white rounded-lg border border-gray-200">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Workflow Templates</h2>
+        <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-200">
+          <h2 className="text-base md:text-lg font-semibold text-gray-900">Workflow Templates</h2>
         </div>
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="p-4 md:p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
             {workflows && workflows.length > 0 ? (
               workflows.map((workflow) => (
-                <div key={workflow.id} className="border border-gray-200 rounded-lg p-4">
+                <div key={workflow.id} className="border border-gray-200 rounded-lg p-3 md:p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-medium text-gray-900">{workflow.name}</h3>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      workflow.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                    <h3 className="font-medium text-gray-900 text-sm md:text-base">{workflow.name}</h3>
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                      workflow.status === 'active' ? 'bg-green-100 text-green-800' :
+                      workflow.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-gray-100 text-gray-800'
                     }`}>
                       {workflow.status}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 mb-3">{workflow.description}</p>
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    <span>{workflow.nodes.length} steps</span>
-                    <span>{formatDate(workflow.createdAt)}</span>
+                  <p className="text-xs md:text-sm text-gray-600 mb-2 md:mb-3">{workflow.description}</p>
+                  <div className="text-xs md:text-sm text-gray-500">
+                    {workflow.nodes.length} steps
                   </div>
                 </div>
               ))
             ) : (
               <div className="col-span-full text-center py-8">
-                <FileText className="mx-auto h-12 w-12 text-gray-500" />
+                <FileText className="mx-auto h-8 w-8 text-gray-500" />
                 <h3 className="mt-2 text-sm font-medium text-gray-900">No workflow templates</h3>
                 <p className="mt-1 text-sm text-gray-500">
-                  Create workflows to see them here.
+                  Create workflow templates to get started.
                 </p>
               </div>
             )}

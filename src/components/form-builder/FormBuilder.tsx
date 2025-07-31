@@ -559,7 +559,7 @@ function SortableSection({
             items={section.fields.map(f => f.id)}
             strategy={verticalListSortingStrategy}
           >
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-4 min-h-[100px]">
               {section.fields.map((field) => (
                 <SortableField
                   key={field.id}
@@ -574,7 +574,7 @@ function SortableSection({
               ))}
               
               {section.fields.length === 0 && (
-                <div className="col-span-3 text-center py-8 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+                <div className="col-span-3 text-center py-8 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50/50 backdrop-blur-sm">
                   <Plus className="w-8 h-8 text-gray-400 mx-auto mb-2" />
                   <p className="text-sm text-gray-600 mb-2">No fields in this section</p>
                   <p className="text-xs text-gray-500">Drag fields from the left panel to add them here</p>
@@ -587,6 +587,17 @@ function SortableSection({
           <SectionDropZone sectionId={section.id} />
         </>
       )}
+    </div>
+  );
+}
+
+// Drop Indicator Component
+function DropIndicator({ isOver }: { isOver: boolean }) {
+  if (!isOver) return null;
+  
+  return (
+    <div className="absolute inset-0 bg-blue-100/50 border-2 border-blue-300 rounded-xl flex items-center justify-center z-10">
+      <div className="text-blue-600 text-sm font-medium">Drop here to reorder</div>
     </div>
   );
 }
@@ -646,7 +657,8 @@ function SortableField({
     id: field.id,
     data: {
       type: 'field',
-      field
+      field,
+      sectionId
     }
   });
 
@@ -668,59 +680,85 @@ function SortableField({
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
-      className={`p-4 border border-gray-200 rounded-md bg-gray-50 hover:bg-gray-100 transition-colors ${getGridSpan()}`}
+      className={`relative group ${getGridSpan()} ${
+        isDragging ? 'z-50 scale-105 shadow-2xl' : ''
+      }`}
     >
-      <div className="flex items-center justify-between">
-        <div className="flex-1">
-          <div className="flex items-center space-x-2">
-            <GripVertical className="w-3 h-3 text-gray-500" />
-            <label className="block text-sm font-medium text-gray-700">
-              {field.label}
-              {field.required && <span className="text-red-500 ml-1">*</span>}
-            </label>
-            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-              {field.type}
-            </span>
-            <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-              {field.size}
-            </span>
+      <div className={`bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-xl p-4 hover:bg-white/90 hover:shadow-md transition-all duration-200 ${
+        isDragging ? 'border-blue-300 bg-blue-50/50' : ''
+      }`}>
+        {/* Drag Handle */}
+        <div 
+          {...attributes}
+          {...listeners}
+          className="absolute top-2 left-2 p-1 rounded-lg bg-gray-100/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-grab active:cursor-grabbing hover:bg-gray-200/80"
+          title="Drag to reorder field"
+        >
+          <GripVertical className="w-3 h-3 text-gray-500" />
+        </div>
+
+        {/* Field Content */}
+        <div className="ml-6">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex-1">
+              <div className="flex items-center space-x-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  {field.label}
+                  {field.required && <span className="text-red-500 ml-1">*</span>}
+                </label>
+                <span className="text-xs bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 px-2 py-1 rounded-lg">
+                  {field.type}
+                </span>
+                <span className="text-xs bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 px-2 py-1 rounded-lg">
+                  {field.size}
+                </span>
+              </div>
+              {field.placeholder && (
+                <p className="text-xs text-gray-500 mt-1">{field.placeholder}</p>
+              )}
+            </div>
           </div>
-          {field.placeholder && (
-            <p className="text-xs text-gray-500 mt-1">{field.placeholder}</p>
-          )}
+          
+          {/* Action Buttons */}
+          <div className="flex items-center justify-end space-x-1 mt-3">
+            <button
+              onClick={onEdit}
+              className="p-1.5 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
+              title="Edit field"
+            >
+              <Edit2 className="w-3 h-3" />
+            </button>
+            <button
+              onClick={onDelete}
+              className="p-1.5 rounded-lg text-gray-600 hover:text-red-600 hover:bg-red-50 transition-all duration-200"
+              title="Delete field"
+            >
+              <Trash2 className="w-3 h-3" />
+            </button>
+          </div>
         </div>
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={onEdit}
-            className="p-1 rounded-md text-gray-700 hover:text-gray-100 bg-green-300 hover:bg-green-600 transition-colors"
-            title="Edit field"
-          >
-            <Edit2 className="w-3 h-3" />
-          </button>
-          <button
-            onClick={onDelete}
-            className="p-1 rounded-md text-red-700 bg-red-500 hover:bg-red-700 transition-colors"
-            title="Delete field"
-          >
-            <Trash2 className="w-3 h-3" />
-          </button>
-        </div>
+        
+        {/* Field Options Display */}
+        {field.options && field.options.length > 0 && (
+          <div className="mt-3 pt-3 border-t border-gray-100">
+            <p className="text-xs text-gray-500 mb-2">Options:</p>
+            <div className="flex flex-wrap gap-1">
+              {field.options.map((option, index) => (
+                <span key={index} className="text-xs text-gray-700 bg-gray-100/80 backdrop-blur-sm px-2 py-1 rounded-lg">
+                  {option.label}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Drag Overlay Indicator */}
+        {isDragging && (
+          <div className="absolute inset-0 bg-blue-50/50 border-2 border-blue-300 rounded-xl flex items-center justify-center">
+            <div className="text-blue-600 text-sm font-medium">Moving field...</div>
+          </div>
+        )}
       </div>
-      
-      {field.options && field.options.length > 0 && (
-        <div className="mt-2">
-          <p className="text-xs text-gray-500">Options:</p>
-          <div className="flex flex-wrap gap-1 mt-1">
-            {field.options.map((option, index) => (
-              <span key={index} className="text-xs text-gray-700 bg-gray-200 px-2 py-1 rounded">
-                {option.label}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -950,132 +988,174 @@ function FieldEditModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
-      <div className="relative p-8 border w-full max-w-md max-h-[90vh] overflow-y-auto bg-white rounded-lg shadow-xl">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Edit Field</h3>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-            <X className="w-5 h-5" />
-          </button>
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm overflow-y-auto h-full w-full flex items-center justify-center z-50 p-4">
+      <div className="relative bg-white/95 backdrop-blur-md border border-gray-200/50 w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl">
+        {/* Header */}
+        <div className="sticky top-0 bg-white/90 backdrop-blur-sm border-b border-gray-200/50 px-6 py-4 rounded-t-2xl">
+          <div className="flex justify-between items-center">
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900">Edit Field Properties</h3>
+              <p className="text-sm text-gray-600 mt-1">Configure your field settings</p>
+            </div>
+            <button 
+              onClick={onClose} 
+              className="p-2 rounded-xl hover:bg-gray-100 transition-colors duration-200"
+            >
+              <X className="w-5 h-5 text-gray-500" />
+            </button>
+          </div>
         </div>
-        <div className="space-y-4">
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Label</label>
-              <input
-                type="text"
-                value={formData.label}
-                onChange={(e) => setFormData(prev => ({ ...prev, label: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Placeholder</label>
-              <input
-                type="text"
-                value={formData.placeholder}
-                onChange={(e) => setFormData(prev => ({ ...prev, placeholder: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Size</label>
-              <select
-                value={formData.size}
-                onChange={(e) => setFormData(prev => ({ ...prev, size: e.target.value as '1x1' | '1x2' | '1x3' }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-              >
-                <option value="1x1">1 Column</option>
-                <option value="1x2">2 Columns</option>
-                <option value="1x3">3 Columns</option>
-              </select>
+
+        {/* Content */}
+        <div className="p-6 space-y-6">
+          {/* Basic Properties */}
+          <div className="bg-gray-50/50 rounded-xl p-4">
+            <h4 className="text-lg font-medium text-gray-900 mb-4">Basic Properties</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Field Label</label>
+                <input
+                  type="text"
+                  value={formData.label}
+                  onChange={(e) => setFormData(prev => ({ ...prev, label: e.target.value }))}
+                  className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 transition-all duration-200"
+                  placeholder="Enter field label..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Placeholder Text</label>
+                <input
+                  type="text"
+                  value={formData.placeholder}
+                  onChange={(e) => setFormData(prev => ({ ...prev, placeholder: e.target.value }))}
+                  className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 transition-all duration-200"
+                  placeholder="Enter placeholder text..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Field Size</label>
+                <select
+                  value={formData.size}
+                  onChange={(e) => setFormData(prev => ({ ...prev, size: e.target.value as '1x1' | '1x2' | '1x3' }))}
+                  className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 transition-all duration-200"
+                >
+                  <option value="1x1">1 Column (Small)</option>
+                  <option value="1x2">2 Columns (Medium)</option>
+                  <option value="1x3">3 Columns (Large)</option>
+                </select>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              id="required"
-              checked={formData.required}
-              onChange={(e) => setFormData(prev => ({ ...prev, required: e.target.checked }))}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-            />
-            <label htmlFor="required" className="text-sm font-medium text-gray-700">Required field</label>
+          {/* Required Field Toggle */}
+          <div className="bg-gray-50/50 rounded-xl p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-lg font-medium text-gray-900">Required Field</h4>
+                <p className="text-sm text-gray-600 mt-1">Make this field mandatory for form submission</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.required}
+                  onChange={(e) => setFormData(prev => ({ ...prev, required: e.target.checked }))}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
           </div>
 
-          {/* Options section - show for dropdown, radio, checkbox fields */}
-          <div className="space-y-3">
-            <label className="block text-sm font-medium text-gray-700">Options</label>
-            <div className="space-y-2">
+          {/* Options Section */}
+          <div className="bg-gray-50/50 rounded-xl p-4">
+            <h4 className="text-lg font-medium text-gray-900 mb-4">Field Options</h4>
+            <p className="text-sm text-gray-600 mb-4">Add options for dropdown, radio, or checkbox fields</p>
+            
+            <div className="space-y-3">
               {formData.options.map((option, index) => (
-                <div key={index} className="flex items-center space-x-2">
-                  <input
-                    type="text"
-                    value={option.label}
-                    onChange={(e) => {
-                      const newOptions = [...formData.options];
-                      newOptions[index].label = e.target.value;
-                      setFormData(prev => ({ ...prev, options: newOptions }));
-                    }}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                    placeholder="Option label"
-                  />
-                  <input
-                    type="text"
-                    value={option.value}
-                    onChange={(e) => {
-                      const newOptions = [...formData.options];
-                      newOptions[index].value = e.target.value;
-                      setFormData(prev => ({ ...prev, options: newOptions }));
-                    }}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                    placeholder="Option value"
-                  />
+                <div key={index} className="flex items-center space-x-3 p-3 bg-white/60 backdrop-blur-sm rounded-xl border border-gray-200/50">
+                  <div className="flex-1">
+                    <input
+                      type="text"
+                      value={option.label}
+                      onChange={(e) => {
+                        const newOptions = [...formData.options];
+                        newOptions[index].label = e.target.value;
+                        setFormData(prev => ({ ...prev, options: newOptions }));
+                      }}
+                      className="w-full px-3 py-2 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 text-sm"
+                      placeholder="Option label"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <input
+                      type="text"
+                      value={option.value}
+                      onChange={(e) => {
+                        const newOptions = [...formData.options];
+                        newOptions[index].value = e.target.value;
+                        setFormData(prev => ({ ...prev, options: newOptions }));
+                      }}
+                      className="w-full px-3 py-2 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 text-sm"
+                      placeholder="Option value"
+                    />
+                  </div>
                   <button
                     onClick={() => removeOption(index)}
-                    className="p-2 text-red-400 hover:text-red-600"
+                    className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                    title="Remove option"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               ))}
-              <div className="flex items-center space-x-2">
-                <input
-                  type="text"
-                  value={newOption.label}
-                  onChange={(e) => setNewOption(prev => ({ ...prev, label: e.target.value }))}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                  placeholder="New option label"
-                />
-                <input
-                  type="text"
-                  value={newOption.value}
-                  onChange={(e) => setNewOption(prev => ({ ...prev, value: e.target.value }))}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-                  placeholder="New option value"
-                />
+              
+              {/* Add New Option */}
+              <div className="flex items-center space-x-3 p-3 bg-white/60 backdrop-blur-sm rounded-xl border border-gray-200/50">
+                <div className="flex-1">
+                  <input
+                    type="text"
+                    value={newOption.label}
+                    onChange={(e) => setNewOption(prev => ({ ...prev, label: e.target.value }))}
+                    className="w-full px-3 py-2 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 text-sm"
+                    placeholder="New option label"
+                  />
+                </div>
+                <div className="flex-1">
+                  <input
+                    type="text"
+                    value={newOption.value}
+                    onChange={(e) => setNewOption(prev => ({ ...prev, value: e.target.value }))}
+                    className="w-full px-3 py-2 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 text-sm"
+                    placeholder="New option value"
+                  />
+                </div>
                 <button
                   onClick={addOption}
-                  className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 shadow-sm hover:shadow-md transition-all duration-200"
+                  title="Add option"
                 >
                   <Plus className="w-4 h-4" />
                 </button>
               </div>
             </div>
           </div>
+        </div>
 
-          <div className="flex items-center justify-end space-x-2">
+        {/* Footer */}
+        <div className="sticky bottom-0 bg-white/90 backdrop-blur-sm border-t border-gray-200/50 px-6 py-4 rounded-b-2xl">
+          <div className="flex items-center justify-end space-x-3">
             <button
               onClick={onCancel}
-              className="px-3 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+              className="px-6 py-3 text-gray-600 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-200 font-medium"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
-              className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 shadow-sm hover:shadow-md transition-all duration-200 font-medium"
             >
-              Save
+              Save Changes
             </button>
           </div>
         </div>

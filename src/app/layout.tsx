@@ -21,8 +21,17 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <div className="flex h-screen bg-gray-50">
-          <Sidebar />
-          <div className="flex flex-1 flex-col">
+          {/* Sidebar - hidden on mobile, visible on desktop */}
+          <div className="hidden md:block">
+            <Sidebar />
+          </div>
+          
+          {/* Mobile sidebar overlay */}
+          <div className="md:hidden">
+            <Sidebar />
+          </div>
+          
+          <div className="flex flex-1 flex-col min-w-0">
             <Header />
             <main className="flex-1 overflow-auto">
               {children}

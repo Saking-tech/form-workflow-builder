@@ -380,13 +380,14 @@ export default function WorkflowDesigner({ workflow, onSave }: WorkflowDesignerP
 
       {/* Form Selection Modal */}
       {showFormModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg w-full max-w-md mx-4">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white/95 backdrop-blur-md border border-gray-200/50 rounded-2xl shadow-2xl w-full max-w-md">
+            <div className="px-6 py-4 border-b border-gray-200/50">
               <h3 className="text-lg font-semibold text-gray-900">Select Form to Add</h3>
+              <p className="text-sm text-gray-600 mt-1">Choose a form to add to your workflow</p>
               <button
                 onClick={() => setShowFormModal(false)}
-                className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all duration-200"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -395,25 +396,29 @@ export default function WorkflowDesigner({ workflow, onSave }: WorkflowDesignerP
             <div className="p-6">
               {forms.length === 0 ? (
                 <div className="text-center py-8">
-                  <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">No forms available</p>
+                  <div className="w-12 h-12 mx-auto mb-4 p-3 rounded-xl bg-gray-100/50">
+                    <FileText className="w-full h-full text-gray-400" />
+                  </div>
+                  <p className="text-gray-600 font-medium">No forms available</p>
                   <p className="text-sm text-gray-500 mt-2">Create forms first to add them to the workflow</p>
                 </div>
               ) : (
-                <div className="space-y-2 max-h-64 overflow-y-auto">
+                <div className="space-y-3 max-h-64 overflow-y-auto">
                   {forms.map((form) => (
                     <button
                       key={form.id}
                       onClick={() => addFormNode(form.id)}
-                      className="w-full flex items-center p-3 text-left border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                      className="w-full flex items-center p-4 text-left bg-white/60 backdrop-blur-sm border border-gray-200/50 rounded-xl hover:bg-white/80 hover:shadow-md transition-all duration-200"
                     >
-                      <FileText className="w-5 h-5 text-blue-600 mr-3" />
-                      <div>
+                      <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white mr-3">
+                        <FileText className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1">
                         <p className="font-medium text-gray-900">{form.name}</p>
                         {form.description && (
                           <p className="text-sm text-gray-600">{form.description}</p>
                         )}
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-gray-500 mt-1">
                           {form.sections.length} sections, {form.sections.reduce((acc, section) => acc + section.fields.length, 0)} fields
                         </p>
                       </div>
@@ -423,10 +428,10 @@ export default function WorkflowDesigner({ workflow, onSave }: WorkflowDesignerP
               )}
             </div>
             
-            <div className="flex items-center justify-end p-6 border-t border-gray-200">
+            <div className="flex items-center justify-end px-6 py-4 border-t border-gray-200/50">
               <button
                 onClick={() => setShowFormModal(false)}
-                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                className="px-6 py-3 text-gray-600 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-200 font-medium"
               >
                 Cancel
               </button>

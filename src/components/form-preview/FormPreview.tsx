@@ -173,16 +173,16 @@ export default function FormPreview({ form, onClose }: FormPreviewProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white/95 backdrop-blur-md border border-gray-200/50 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200/50">
           <div>
             <h2 className="text-xl font-semibold text-gray-900">Form Preview</h2>
-            <p className="text-gray-600">{form.name}</p>
+            <p className="text-sm text-gray-600">{form.name}</p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all duration-200"
           >
             <X className="w-5 h-5" />
           </button>
@@ -190,13 +190,13 @@ export default function FormPreview({ form, onClose }: FormPreviewProps) {
 
         <div className="p-6 space-y-6">
           {form.description && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/50 rounded-xl p-4">
               <p className="text-blue-800">{form.description}</p>
             </div>
           )}
 
           {form.sections.map((section) => (
-            <div key={section.id} className="border border-gray-200 rounded-lg p-6">
+            <div key={section.id} className="bg-white/60 backdrop-blur-sm border border-gray-200/50 rounded-xl p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">{section.title}</h3>
               {section.subtitle && (
                 <p className="text-sm text-gray-600 mb-4">{section.subtitle}</p>
