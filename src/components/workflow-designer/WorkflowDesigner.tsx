@@ -42,7 +42,7 @@ interface WorkflowDesignerProps {
   onWorkflowDataChange?: (workflow: Workflow) => void;
 }
 
-export default function WorkflowDesigner({ workflow, onSave, onSaveAsTemplate }: WorkflowDesignerProps) {
+export default function WorkflowDesigner({ workflow, onSave, onSaveAsTemplate, onWorkflowDataChange }: WorkflowDesignerProps) {
   const router = useRouter();
   const { forms } = useFormStore();
   const { addWorkflow, updateWorkflow } = useWorkflowStore();
@@ -183,10 +183,8 @@ export default function WorkflowDesigner({ workflow, onSave, onSaveAsTemplate }:
     setNodes((nds) => [...nds, reactFlowNode]);
   };
 
-
-
-  const saveWorkflow = () => {
-    const workflowData: Workflow = {
+  const getCurrentWorkflowData = (): Workflow => {
+    return {
       id: workflow?.id || generateId(),
       name: workflow?.name || 'New Workflow',
       description: workflow?.description || '',
@@ -203,6 +201,10 @@ export default function WorkflowDesigner({ workflow, onSave, onSaveAsTemplate }:
       status: 'draft',
       createdAt: workflow?.createdAt || new Date()
     };
+  };
+
+  const saveWorkflow = () => {
+    const workflowData = getCurrentWorkflowData();
 
     if (workflow) {
       updateWorkflow(workflow.id, workflowData);
@@ -359,7 +361,11 @@ export default function WorkflowDesigner({ workflow, onSave, onSaveAsTemplate }:
           </button>
           {onSaveAsTemplate && (
             <button
-              onClick={() => onSaveAsTemplate('New Workflow Template', 'A new workflow template')}
+              onClick={() => {
+                const currentData = getCurrentWorkflowData();
+                onWorkflowDataChange?.(currentData);
+                onSaveAsTemplate('New Workflow Template', 'A new workflow template');
+              }}
               className="flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
             >
               <FileText className="w-4 h-4 mr-2" />

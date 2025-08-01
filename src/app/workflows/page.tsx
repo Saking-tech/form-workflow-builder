@@ -60,6 +60,11 @@ export default function WorkflowsPage() {
   };
 
   const handleSaveAsTemplate = (defaultName: string, defaultDescription: string) => {
+    // If we have current workflow data, use it; otherwise use selected workflow
+    const workflowToSave = currentWorkflowData || selectedWorkflow;
+    if (workflowToSave) {
+      setCurrentWorkflowData(workflowToSave);
+    }
     setTemplateName(defaultName);
     setTemplateDescription(defaultDescription);
     setShowSaveTemplateModal(true);
@@ -74,6 +79,10 @@ export default function WorkflowsPage() {
       setCurrentWorkflowData(null);
       alert('Workflow saved as template successfully!');
     }
+  };
+
+  const handleWorkflowDataChange = (workflowData: Workflow) => {
+    setCurrentWorkflowData(workflowData);
   };
 
   const handleEditWorkflow = (workflow: Workflow) => {
@@ -137,6 +146,7 @@ export default function WorkflowsPage() {
             workflow={selectedWorkflow || undefined}
             onSave={handleSaveWorkflow}
             onSaveAsTemplate={handleSaveAsTemplate}
+            onWorkflowDataChange={handleWorkflowDataChange}
           />
         </div>
       </div>
