@@ -38,9 +38,11 @@ const nodeTypes = {
 interface WorkflowDesignerProps {
   workflow?: Workflow;
   onSave?: (workflow: Workflow) => void;
+  onSaveAsTemplate?: (templateName: string, templateDescription: string) => void;
+  onWorkflowDataChange?: (workflow: Workflow) => void;
 }
 
-export default function WorkflowDesigner({ workflow, onSave }: WorkflowDesignerProps) {
+export default function WorkflowDesigner({ workflow, onSave, onSaveAsTemplate, onWorkflowDataChange }: WorkflowDesignerProps) {
   const router = useRouter();
   const { forms } = useFormStore();
   const { addWorkflow, updateWorkflow } = useWorkflowStore();
@@ -181,10 +183,8 @@ export default function WorkflowDesigner({ workflow, onSave }: WorkflowDesignerP
     setNodes((nds) => [...nds, reactFlowNode]);
   };
 
-
-
-  const saveWorkflow = () => {
-    const workflowData: Workflow = {
+  const getCurrentWorkflowData = (): Workflow => {
+    return {
       id: workflow?.id || generateId(),
       name: workflow?.name || 'New Workflow',
       description: workflow?.description || '',
@@ -201,6 +201,10 @@ export default function WorkflowDesigner({ workflow, onSave }: WorkflowDesignerP
       status: 'draft',
       createdAt: workflow?.createdAt || new Date()
     };
+  };
+
+  const saveWorkflow = () => {
+    const workflowData = getCurrentWorkflowData();
 
     if (workflow) {
       updateWorkflow(workflow.id, workflowData);
@@ -355,6 +359,19 @@ export default function WorkflowDesigner({ workflow, onSave }: WorkflowDesignerP
             <Save className="w-4 h-4 mr-2" />
             Save
           </button>
+          {onSaveAsTemplate && (
+            <button
+              onClick={() => {
+                const currentData = getCurrentWorkflowData();
+                onWorkflowDataChange?.(currentData);
+                onSaveAsTemplate('New Workflow Template', 'A new workflow template');
+              }}
+              className="flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              Save as Template
+            </button>
+          )}
           <button
             onClick={executeWorkflow}
             className="flex items-center px-3 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"

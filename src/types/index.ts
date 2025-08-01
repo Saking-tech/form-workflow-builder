@@ -86,3 +86,12 @@ export interface FormTemplate {
   description: string;
   sections: FormSection[];
 }
+
+// Workflow template interface
+export interface WorkflowTemplate {
+  id: string;
+  name: string;
+  description: string;
+  nodes: WorkflowNode[];
+  connections: Array<{ from: string; to: string }>;
+}

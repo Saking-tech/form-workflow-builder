@@ -12,18 +12,25 @@ import {
   Eye, 
   Trash2, 
   Copy,
-  FileText
+  FileText,
+  Save
 } from 'lucide-react';
+import { WORKFLOW_TEMPLATES } from '@/lib/workflowTemplates';
 
 export default function WorkflowsPage() {
-  const { workflows, addWorkflow, updateWorkflow, deleteWorkflow } = useWorkflowStore();
+  const { workflows, addWorkflow, updateWorkflow, deleteWorkflow, createWorkflowFromTemplate, saveWorkflowAsTemplate, saveWorkflowObjectAsTemplate } = useWorkflowStore();
   const { forms } = useFormStore();
   const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(null);
   const [showDesigner, setShowDesigner] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [showSaveTemplateModal, setShowSaveTemplateModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [viewingWorkflow, setViewingWorkflow] = useState<Workflow | null>(null);
   const [newWorkflowName, setNewWorkflowName] = useState('');
+  const [templateName, setTemplateName] = useState('');
+  const [templateDescription, setTemplateDescription] = useState('');
+  const [currentWorkflowData, setCurrentWorkflowData] = useState<Workflow | null>(null);
 
   const handleCreateWorkflow = () => {
     if (!newWorkflowName.trim()) return;
@@ -43,6 +50,39 @@ export default function WorkflowsPage() {
     setShowDesigner(true);
     setShowCreateModal(false);
     setNewWorkflowName('');
+  };
+
+  const handleCreateFromTemplate = (templateId: string) => {
+    const newWorkflow = createWorkflowFromTemplate(templateId);
+    setSelectedWorkflow(newWorkflow);
+    setShowDesigner(true);
+    setShowTemplateModal(false);
+  };
+
+  const handleSaveAsTemplate = (defaultName: string, defaultDescription: string) => {
+    // If we have current workflow data, use it; otherwise use selected workflow
+    const workflowToSave = currentWorkflowData || selectedWorkflow;
+    if (workflowToSave) {
+      setCurrentWorkflowData(workflowToSave);
+    }
+    setTemplateName(defaultName);
+    setTemplateDescription(defaultDescription);
+    setShowSaveTemplateModal(true);
+  };
+
+  const handleConfirmSaveAsTemplate = () => {
+    if (currentWorkflowData && templateName) {
+      saveWorkflowObjectAsTemplate(currentWorkflowData, templateName, templateDescription);
+      setShowSaveTemplateModal(false);
+      setTemplateName('');
+      setTemplateDescription('');
+      setCurrentWorkflowData(null);
+      alert('Workflow saved as template successfully!');
+    }
+  };
+
+  const handleWorkflowDataChange = (workflowData: Workflow) => {
+    setCurrentWorkflowData(workflowData);
   };
 
   const handleEditWorkflow = (workflow: Workflow) => {
@@ -105,6 +145,8 @@ export default function WorkflowsPage() {
           <WorkflowDesigner
             workflow={selectedWorkflow || undefined}
             onSave={handleSaveWorkflow}
+            onSaveAsTemplate={handleSaveAsTemplate}
+            onWorkflowDataChange={handleWorkflowDataChange}
           />
         </div>
       </div>
@@ -118,13 +160,22 @@ export default function WorkflowsPage() {
           <h1 className="text-xl md:text-2xl font-bold text-gray-900">Workflows</h1>
           <p className="text-sm md:text-base text-gray-600">Create and manage workflow templates</p>
         </div>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="flex items-center justify-center px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 shadow-sm hover:shadow-md transition-all duration-200"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Create Workflow
-        </button>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => setShowTemplateModal(true)}
+            className="flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 shadow-sm hover:shadow-md transition-all duration-200"
+          >
+            <FileText className="w-4 h-4 mr-2" />
+            Use Template
+          </button>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="flex items-center justify-center px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 shadow-sm hover:shadow-md transition-all duration-200"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Create Workflow
+          </button>
+        </div>
       </div>
 
 
@@ -495,6 +546,106 @@ export default function WorkflowsPage() {
                   Edit Workflow
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Template Selection Modal */}
+      {showTemplateModal && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white/95 backdrop-blur-md border border-gray-200/50 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+            <div className="px-6 py-4 border-b border-gray-200/50">
+              <h2 className="text-xl font-semibold text-gray-900">Choose a Workflow Template</h2>
+              <p className="text-sm text-gray-600 mt-1">Start with a pre-built workflow template that matches common business processes.</p>
+            </div>
+            
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {WORKFLOW_TEMPLATES.map((template) => (
+                  <div key={template.id} className="bg-white/60 backdrop-blur-sm border border-gray-200/50 rounded-xl p-4 hover:bg-white/80 hover:shadow-md transition-all duration-200">
+                    <h3 className="font-semibold text-gray-900 mb-2">{template.name}</h3>
+                    <p className="text-sm text-gray-600 mb-3">{template.description}</p>
+                    
+                    <div className="space-y-2 mb-4">
+                      {template.nodes.map((node, index) => (
+                        <div key={node.id} className="flex items-center justify-between text-sm">
+                          <span className="text-gray-700">Step {index + 1}</span>
+                          <span className="text-gray-500">{node.formId ? 'Form' : 'Node'}</span>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <button
+                      onClick={() => handleCreateFromTemplate(template.id)}
+                      className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 shadow-sm hover:shadow-md transition-all duration-200 font-medium"
+                    >
+                      Use This Template
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-end px-6 py-4 border-t border-gray-200/50">
+              <button
+                onClick={() => setShowTemplateModal(false)}
+                className="px-6 py-3 text-gray-600 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-200 font-medium"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Save Workflow as Template Modal */}
+      {showSaveTemplateModal && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white/95 backdrop-blur-md border border-gray-200/50 rounded-2xl shadow-2xl w-full max-w-md">
+            <div className="px-6 py-4 border-b border-gray-200/50">
+              <h2 className="text-xl font-semibold text-gray-900">Save Workflow as Template</h2>
+              <p className="text-sm text-gray-600 mt-1">Give your workflow a name and description to save it as a template.</p>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Template Name</label>
+                <input
+                  type="text"
+                  value={templateName}
+                  onChange={(e) => setTemplateName(e.target.value)}
+                  className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 transition-all duration-200"
+                  placeholder="Enter template name"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Description (Optional)</label>
+                <textarea
+                  value={templateDescription}
+                  onChange={(e) => setTemplateDescription(e.target.value)}
+                  className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 transition-all duration-200"
+                  placeholder="Enter template description"
+                  rows={3}
+                />
+              </div>
+            </div>
+            <div className="flex items-center justify-end space-x-3 px-6 py-4 border-t border-gray-200/50">
+              <button
+                onClick={() => {
+                  setShowSaveTemplateModal(false);
+                  setTemplateName('');
+                  setTemplateDescription('');
+                }}
+                className="px-6 py-3 text-gray-600 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-200 font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmSaveAsTemplate}
+                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 shadow-sm hover:shadow-md transition-all duration-200 font-medium"
+              >
+                Save as Template
+              </button>
             </div>
           </div>
         </div>

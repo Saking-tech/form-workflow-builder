@@ -11,15 +11,18 @@ import InteractiveForm from '@/components/form-interactive/InteractiveForm';
 import { Plus, FileText, Eye, Trash2, Edit3, Copy, X } from 'lucide-react';
 
 export default function FormsPage() {
-  const { forms, createFormFromTemplate, setCurrentForm, currentForm, updateForm, deleteForm, addForm } = useFormStore();
+  const { forms, createFormFromTemplate, setCurrentForm, currentForm, updateForm, deleteForm, addForm, saveFormAsTemplate } = useFormStore();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState<string | null>(null);
+  const [showSaveTemplateModal, setShowSaveTemplateModal] = useState(false);
   const [editingForm, setEditingForm] = useState<Form | null>(null);
   const [previewForm, setPreviewForm] = useState<Form | null>(null);
   const [interactiveForm, setInteractiveForm] = useState<Form | null>(null);
   const [formName, setFormName] = useState('');
   const [formDescription, setFormDescription] = useState('');
+  const [templateName, setTemplateName] = useState('');
+  const [templateDescription, setTemplateDescription] = useState('');
 
   const handleCreateForm = () => {
     const newForm: Form = {
@@ -52,6 +55,22 @@ export default function FormsPage() {
     if (currentForm) {
       updateForm(currentForm.id, currentForm);
       setCurrentForm(null);
+    }
+  };
+
+  const handleSaveAsTemplate = (defaultName: string, defaultDescription: string) => {
+    setTemplateName(defaultName);
+    setTemplateDescription(defaultDescription);
+    setShowSaveTemplateModal(true);
+  };
+
+  const handleConfirmSaveAsTemplate = () => {
+    if (currentForm && templateName) {
+      saveFormAsTemplate(currentForm.id, templateName, templateDescription);
+      setShowSaveTemplateModal(false);
+      setTemplateName('');
+      setTemplateDescription('');
+      alert('Form saved as template successfully!');
     }
   };
 
@@ -117,7 +136,11 @@ export default function FormsPage() {
           </div>
         </div>
         <div className="flex-1 overflow-hidden">
-          <FormBuilder form={currentForm} onFormChange={handleFormChange} />
+          <FormBuilder 
+            form={currentForm} 
+            onFormChange={handleFormChange} 
+            onSaveAsTemplate={handleSaveAsTemplate}
+          />
         </div>
       </div>
     );
@@ -415,6 +438,58 @@ export default function FormsPage() {
                 className="px-6 py-3 text-gray-600 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-200 font-medium"
               >
                 Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Save Form as Template Modal */}
+      {showSaveTemplateModal && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white/95 backdrop-blur-md border border-gray-200/50 rounded-2xl shadow-2xl w-full max-w-md">
+            <div className="px-6 py-4 border-b border-gray-200/50">
+              <h2 className="text-xl font-semibold text-gray-900">Save Form as Template</h2>
+              <p className="text-sm text-gray-600 mt-1">Give your form a name and description to save it as a template.</p>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Template Name</label>
+                <input
+                  type="text"
+                  value={templateName}
+                  onChange={(e) => setTemplateName(e.target.value)}
+                  className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 transition-all duration-200"
+                  placeholder="Enter template name"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Description (Optional)</label>
+                <textarea
+                  value={templateDescription}
+                  onChange={(e) => setTemplateDescription(e.target.value)}
+                  className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 transition-all duration-200"
+                  placeholder="Enter template description"
+                  rows={3}
+                />
+              </div>
+            </div>
+            <div className="flex items-center justify-end space-x-3 px-6 py-4 border-t border-gray-200/50">
+              <button
+                onClick={() => {
+                  setShowSaveTemplateModal(false);
+                  setTemplateName('');
+                  setTemplateDescription('');
+                }}
+                className="px-6 py-3 text-gray-600 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-200 font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmSaveAsTemplate}
+                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 shadow-sm hover:shadow-md transition-all duration-200 font-medium"
+              >
+                Save as Template
               </button>
             </div>
           </div>
