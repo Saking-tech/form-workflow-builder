@@ -18,18 +18,15 @@ import {
 import { WORKFLOW_TEMPLATES } from '@/lib/workflowTemplates';
 
 export default function WorkflowsPage() {
-  const { workflows, addWorkflow, updateWorkflow, deleteWorkflow, createWorkflowFromTemplate, saveWorkflowAsTemplate, saveWorkflowObjectAsTemplate } = useWorkflowStore();
+  const { workflows, addWorkflow, updateWorkflow, deleteWorkflow, createWorkflowFromTemplate } = useWorkflowStore();
   const { forms } = useFormStore();
   const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(null);
   const [showDesigner, setShowDesigner] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
-  const [showSaveTemplateModal, setShowSaveTemplateModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [viewingWorkflow, setViewingWorkflow] = useState<Workflow | null>(null);
   const [newWorkflowName, setNewWorkflowName] = useState('');
-  const [templateName, setTemplateName] = useState('');
-  const [templateDescription, setTemplateDescription] = useState('');
   const [currentWorkflowData, setCurrentWorkflowData] = useState<Workflow | null>(null);
 
   const handleCreateWorkflow = () => {
@@ -59,27 +56,7 @@ export default function WorkflowsPage() {
     setShowTemplateModal(false);
   };
 
-  const handleSaveAsTemplate = (defaultName: string, defaultDescription: string) => {
-    // If we have current workflow data, use it; otherwise use selected workflow
-    const workflowToSave = currentWorkflowData || selectedWorkflow;
-    if (workflowToSave) {
-      setCurrentWorkflowData(workflowToSave);
-    }
-    setTemplateName(defaultName);
-    setTemplateDescription(defaultDescription);
-    setShowSaveTemplateModal(true);
-  };
 
-  const handleConfirmSaveAsTemplate = () => {
-    if (currentWorkflowData && templateName) {
-      saveWorkflowObjectAsTemplate(currentWorkflowData, templateName, templateDescription);
-      setShowSaveTemplateModal(false);
-      setTemplateName('');
-      setTemplateDescription('');
-      setCurrentWorkflowData(null);
-      alert('Workflow saved as template successfully!');
-    }
-  };
 
   const handleWorkflowDataChange = (workflowData: Workflow) => {
     setCurrentWorkflowData(workflowData);
@@ -145,7 +122,6 @@ export default function WorkflowsPage() {
           <WorkflowDesigner
             workflow={selectedWorkflow || undefined}
             onSave={handleSaveWorkflow}
-            onSaveAsTemplate={handleSaveAsTemplate}
             onWorkflowDataChange={handleWorkflowDataChange}
           />
         </div>
@@ -599,57 +575,7 @@ export default function WorkflowsPage() {
         </div>
       )}
 
-      {/* Save Workflow as Template Modal */}
-      {showSaveTemplateModal && (
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white/95 backdrop-blur-md border border-gray-200/50 rounded-2xl shadow-2xl w-full max-w-md">
-            <div className="px-6 py-4 border-b border-gray-200/50">
-              <h2 className="text-xl font-semibold text-gray-900">Save Workflow as Template</h2>
-              <p className="text-sm text-gray-600 mt-1">Give your workflow a name and description to save it as a template.</p>
-            </div>
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Template Name</label>
-                <input
-                  type="text"
-                  value={templateName}
-                  onChange={(e) => setTemplateName(e.target.value)}
-                  className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 transition-all duration-200"
-                  placeholder="Enter template name"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Description (Optional)</label>
-                <textarea
-                  value={templateDescription}
-                  onChange={(e) => setTemplateDescription(e.target.value)}
-                  className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 transition-all duration-200"
-                  placeholder="Enter template description"
-                  rows={3}
-                />
-              </div>
-            </div>
-            <div className="flex items-center justify-end space-x-3 px-6 py-4 border-t border-gray-200/50">
-              <button
-                onClick={() => {
-                  setShowSaveTemplateModal(false);
-                  setTemplateName('');
-                  setTemplateDescription('');
-                }}
-                className="px-6 py-3 text-gray-600 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-200 font-medium"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleConfirmSaveAsTemplate}
-                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 shadow-sm hover:shadow-md transition-all duration-200 font-medium"
-              >
-                Save as Template
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 }

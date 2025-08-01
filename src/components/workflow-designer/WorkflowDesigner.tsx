@@ -38,11 +38,10 @@ const nodeTypes = {
 interface WorkflowDesignerProps {
   workflow?: Workflow;
   onSave?: (workflow: Workflow) => void;
-  onSaveAsTemplate?: (templateName: string, templateDescription: string) => void;
   onWorkflowDataChange?: (workflow: Workflow) => void;
 }
 
-export default function WorkflowDesigner({ workflow, onSave, onSaveAsTemplate, onWorkflowDataChange }: WorkflowDesignerProps) {
+export default function WorkflowDesigner({ workflow, onSave, onWorkflowDataChange }: WorkflowDesignerProps) {
   const router = useRouter();
   const { forms } = useFormStore();
   const { addWorkflow, updateWorkflow } = useWorkflowStore();
@@ -359,19 +358,7 @@ export default function WorkflowDesigner({ workflow, onSave, onSaveAsTemplate, o
             <Save className="w-4 h-4 mr-2" />
             Save
           </button>
-          {onSaveAsTemplate && (
-            <button
-              onClick={() => {
-                const currentData = getCurrentWorkflowData();
-                onWorkflowDataChange?.(currentData);
-                onSaveAsTemplate('New Workflow Template', 'A new workflow template');
-              }}
-              className="flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-            >
-              <FileText className="w-4 h-4 mr-2" />
-              Save as Template
-            </button>
-          )}
+
           <button
             onClick={executeWorkflow}
             className="flex items-center px-3 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"

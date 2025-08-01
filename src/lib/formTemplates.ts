@@ -80,7 +80,7 @@ export const FORM_TEMPLATES: FormTemplate[] = [
       
       createSection('Approvals', undefined, [
         createField('text', 'Requester Name', 'Enter requester name', true),
-        createField('radio', 'Department - Select one or more', undefined, true, [
+        createField('multiselect', 'Departments - Select one or more', undefined, true, [
           { label: 'Product', value: 'product' },
           { label: 'IT', value: 'it' },
           { label: 'Marketing & Sales', value: 'marketing_sales' },
@@ -117,7 +117,7 @@ export const FORM_TEMPLATES: FormTemplate[] = [
       ], 1),
       
       createSection('Nature of Agreement', undefined, [
-        createField('radio', 'Nature of Agreement(s) - Select Document Type(s)', undefined, true, [
+        createField('multiselect', 'Nature of Agreement(s) - Select Document Type(s)', undefined, true, [
           { label: 'Master or Framework Agreement', value: 'master_framework' },
           { label: 'Order form', value: 'order_form' },
           { label: 'Data Processing Agreement', value: 'dpa' },

@@ -12,7 +12,6 @@ interface FormStore {
   deleteForm: (id: string) => void;
   setCurrentForm: (form: Form | null) => void;
   createFormFromTemplate: (templateId: string) => Form;
-  saveFormAsTemplate: (formId: string, templateName: string, templateDescription: string) => void;
   addSectionToForm: (formId: string, section: FormSection) => void;
   updateSectionInForm: (formId: string, sectionId: string, updates: Partial<FormSection>) => void;
   removeSectionFromForm: (formId: string, sectionId: string) => void;
@@ -71,30 +70,7 @@ export const useFormStore = create<FormStore>(
     return newForm;
   },
 
-  saveFormAsTemplate: (formId, templateName, templateDescription) => {
-    const form = get().forms.find(f => f.id === formId);
-    if (!form) {
-      throw new Error(`Form with ID ${formId} not found`);
-    }
 
-    const newTemplate: FormTemplate = {
-      id: `template_${Date.now()}`,
-      name: templateName,
-      description: templateDescription,
-      sections: form.sections.map(section => ({
-        ...section,
-        id: `section_${Date.now()}_${Math.random()}`,
-        fields: section.fields.map(field => ({
-          ...field,
-          id: `field_${Date.now()}_${Math.random()}`
-        }))
-      }))
-    };
-
-    set((state) => ({
-      templates: [...state.templates, newTemplate]
-    }));
-  },
 
 
   

@@ -12,8 +12,7 @@ interface WorkflowStore {
   deleteWorkflow: (id: string) => void;
   setCurrentWorkflow: (workflow: Workflow | null) => void;
   createWorkflowFromTemplate: (templateId: string) => Workflow;
-  saveWorkflowAsTemplate: (workflowId: string, templateName: string, templateDescription: string) => void;
-  saveWorkflowObjectAsTemplate: (workflow: Workflow, templateName: string, templateDescription: string) => void;
+
   addNodeToWorkflow: (workflowId: string, formId: string, position: { x: number; y: number }) => void;
   updateNodeInWorkflow: (workflowId: string, nodeId: string, updates: Partial<WorkflowNode>) => void;
   removeNodeFromWorkflow: (workflowId: string, nodeId: string) => void;
@@ -66,44 +65,7 @@ export const useWorkflowStore = create<WorkflowStore>(
     return newWorkflow;
   },
   
-  saveWorkflowAsTemplate: (workflowId, templateName, templateDescription) => {
-    const workflow = get().workflows.find(w => w.id === workflowId);
-    if (!workflow) {
-      throw new Error(`Workflow with ID ${workflowId} not found`);
-    }
 
-    const newTemplate: WorkflowTemplate = {
-      id: `template_${Date.now()}`,
-      name: templateName,
-      description: templateDescription,
-      nodes: workflow.nodes.map(node => ({
-        ...node,
-        id: `node_${Date.now()}_${Math.random()}`
-      })),
-      connections: workflow.connections
-    };
-
-    set((state) => ({
-      templates: [...state.templates, newTemplate]
-    }));
-  },
-
-  saveWorkflowObjectAsTemplate: (workflow, templateName, templateDescription) => {
-    const newTemplate: WorkflowTemplate = {
-      id: `template_${Date.now()}`,
-      name: templateName,
-      description: templateDescription,
-      nodes: workflow.nodes.map(node => ({
-        ...node,
-        id: `node_${Date.now()}_${Math.random()}`
-      })),
-      connections: workflow.connections
-    };
-
-    set((state) => ({
-      templates: [...state.templates, newTemplate]
-    }));
-  },
   
   addNodeToWorkflow: (workflowId, formId, position) => set((state) => ({
     workflows: state.workflows.map(workflow => 
