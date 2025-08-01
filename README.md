@@ -1,4 +1,4 @@
-# Matter Intake System - Drag-and-Drop Form Builder & Workflow Generator
+# FW Creator - Drag-and-Drop Form Builder & Workflow Generator
 
 A comprehensive web application for creating custom forms, building workflows, and executing multi-step processes. Built with Next.js, TypeScript, and modern web technologies.
 
@@ -9,7 +9,6 @@ A comprehensive web application for creating custom forms, building workflows, a
 - **Visual Workflow Designer**: Build workflows using React Flow
 - **Multi-Step Request Creation**: Create requests with validation and progress tracking
 - **Workflow Execution**: Execute workflows step-by-step with progress tracking
-- **Dashboard Analytics**: View KPIs and trends
 
 ### 🎨 UI/UX Features
 - Clean, modern interface inspired by professional legal systems
@@ -36,13 +35,28 @@ A comprehensive web application for creating custom forms, building workflows, a
 
 ## Technology Stack
 
-- **Frontend**: Next.js 15, React 18, TypeScript
-- **Styling**: Tailwind CSS
-- **State Management**: Zustand
-- **Drag & Drop**: @dnd-kit/core
-- **Workflow Visualization**: @xyflow/react
-- **Form Validation**: React Hook Form + Zod
-- **Icons**: Lucide React
+### Frontend Technologies
+- **Next.js 15**: Provides server-side rendering, routing, and optimized performance for modern web applications
+- **React 18**: Enables component-based UI development with hooks and concurrent features
+- **TypeScript**: Ensures type safety and better developer experience with compile-time error checking
+
+### Styling & UI
+- **Tailwind CSS**: Utility-first CSS framework for rapid UI development and consistent design
+- **Lucide React**: Modern icon library for clean, scalable icons
+
+### State Management & Data Handling
+- **Zustand**: Lightweight state management library for simple and efficient global state management
+- **React Hook Form**: Performant form library with built-in validation
+- **Zod**: TypeScript-first schema validation for runtime type checking
+
+### Interactive Features
+- **@dnd-kit/core**: Modern drag-and-drop library for form building functionality
+- **@xyflow/react**: React Flow for visual workflow design and node-based interfaces
+
+### Development Tools
+- **ESLint**: Code linting for maintaining code quality
+- **PostCSS**: CSS processing for Tailwind CSS optimization
+
 
 ## Project Structure
 
@@ -51,7 +65,7 @@ form-workflow-builder/
 ├── app/                    # Next.js App Router pages
 │   ├── create/            # Create request page
 │   ├── forms/             # Form builder page
-│   ├── requests/          # My requests page
+│   ├── requests/          # Execution page
 │   └── page.tsx           # Dashboard
 ├── components/            # React components
 │   ├── form-builder/      # Form builder components
@@ -91,37 +105,106 @@ npm run dev
 
 ## Usage Guide
 
-### 1. Dashboard
-- View KPIs and analytics
-- Monitor request statuses
+### 1. Creator Resources
+- Access to Form Creator
+- Access to Workflow Creator
 - Access quick actions
 
-### 2. Create Forms
-1. Navigate to "Forms" in the sidebar
-2. Click "Create New Form"
-3. Drag field types from the left panel to the canvas
-4. Configure field properties (label, validation, etc.)
-5. Save your form
+### 2. Form Creation Process
 
-### 3. Create Requests
-1. Navigate to "Create Request"
-2. Fill out the multi-step form:
-   - Step 1: Request Type & Agreement Information
-   - Step 2: Document Upload
-   - Step 3: Vendor Information & Approvals
-3. Submit to create a workflow and request
+#### Step 1: Access Form Creator
+1. Navigate to the dashboard
+2. Click on "Form Creator" tab
+3. Choose from three options:
+   - **Create New Form**: Start from scratch
+   - **Use Template**: Start with pre-built templates
+   - **Import Form**: Import from external sources
+
+#### Step 2: Create Form Structure
+1. **From Scratch**:
+   - Click "Create Form" button
+   - Enter form name and description
+   - Click "Create Form" to start building
+
+2. **From Template**:
+   - Click "Use Template" button
+   - Select from available templates (Legal Intake, Client Information, etc.)
+   - Click "Use This Template" to start with pre-built structure
+
+#### Step 3: Build Your Form
+1. **Drag and Drop Interface**:
+   - Drag field types from the left panel to the canvas
+   - Configure field properties (label, validation, required status)
+   - Organize fields into sections
+
+2. **Field Configuration**:
+   - Set field labels and descriptions
+   - Configure validation rules
+   - Set required/optional status
+   - Add field-specific options (dropdown choices, file types, etc.)
+
+#### Step 4: Preview and Test
+1. **Preview Form**: Click the eye icon to see how the form looks
+2. **Test Form**: Click "Test" button to interact with the form with validation
+3. **Save Form**: Click "Save Form" to store your creation
+
+#### Step 5: Manage Forms
+- **Edit**: Modify existing forms
+- **Duplicate**: Create copies of forms
+- **Delete**: Remove unwanted forms
+- **Export**: Share forms with others
+
+
+### 3. Workflows
+
+#### Step 1: Access the Workflow Designer
+1. Navigate to the "Workflows" section from the main dashboard.
+2. Click the "Create Workflow" button to start a new workflow.
+
+#### Step 2: Name and Describe the Workflow
+1. Enter a unique name for your workflow in the "Workflow Name" field.
+2. (Optional) Add a description to clarify the workflow’s purpose.
+
+#### Step 3: Add Forms to the Workflow
+1. Click "Add Form" or drag forms from the available list into the workflow canvas.
+2. Select the forms you want to include as steps in your workflow.
+3. Repeat to add multiple forms as needed.
+
+#### Step 4: Connect Forms in Sequence
+1. Arrange the forms in the desired order on the canvas.
+2. Draw connections between forms to define the flow (e.g., drag from the end of one form to the start of the next).
+3. Ensure there is a clear start and end to the workflow.
+
+#### Step 5: Review and Save the Workflow
+1. Double-check the workflow structure and connections.
+2. Click the "Save Workflow" button to store your workflow.
+
+#### Step 6: View and Manage Workflows
+1. After saving, your workflow will appear in the "All Workflows" list.
+2. From here, you can view, edit, duplicate, or delete workflows as needed.
 
 ### 4. Execute Workflows
-1. Go to "My Requests"
-2. Click "Execute" on any request
-3. Follow the step-by-step workflow
-4. Complete each form step
-5. Track progress through the visual stepper
+
+1. Navigate to the **"Execute Workflows"** section from the main dashboard.
+2. In the **"Available Workflows"** list, locate the workflow you want to run.
+3. Click the **"Execute Workflow"** button for your chosen workflow.
+4. In the **"Create New Request"** modal:
+   - Enter a title for your request.
+   - Select the workflow you want to execute (if not already selected).
+   - Click **"Create Request"**.
+5. The workflow execution will begin. For each step:
+   - Complete the form fields as required.
+   - Click **"Next"** or **"Submit"** to proceed to the next step.
+   - Repeat until all steps are completed.
+6. Track your progress using the visual stepper at the top of the page.
+7. After completing all steps, review the summary and confirm completion.
+8. Your workflow execution will be marked as **completed**. You can view details or re-execute by clicking the appropriate button in the request list.
 
 ## Key Components
 
 ### Form Builder
 - **FieldPalette**: Draggable field types
+- **FormSections**: Draggable form section
 - **FormCanvas**: Drop zone for form building
 - **FormFieldRenderer**: Individual field configuration
 
@@ -130,9 +213,7 @@ npm run dev
 - **FormNode**: Form nodes in workflow
 - **StartNode/EndNode**: Workflow start/end nodes
 
-### Request Management
-- **CreateRequestPage**: Multi-step request creation
-- **RequestsPage**: Request listing and execution
+### Workflow Execution
 - **WorkflowExecution**: Step-by-step workflow execution
 
 ## State Management
@@ -218,10 +299,6 @@ npm start
 3. Make your changes
 4. Add tests if applicable
 5. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License.
 
 ## Acknowledgments
 
