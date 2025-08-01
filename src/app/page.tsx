@@ -7,8 +7,13 @@ import {
   GitBranch, 
   Plus, 
   Settings, 
-  ArrowRight
+  ArrowRight,
+  Clock,
+  Edit,
+  Trash2
 } from 'lucide-react';
+import { useFormStore } from '@/stores/formStore';
+import { useWorkflowStore } from '@/stores/workflowStore';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<'forms' | 'workflows'>('forms');
@@ -66,6 +71,7 @@ export default function Dashboard() {
 
 function FormCreatorSection() {
   const router = useRouter();
+  const { forms } = useFormStore();
 
   const quickActions = [
     {
@@ -93,6 +99,11 @@ function FormCreatorSection() {
       bgColor: 'from-purple-50 to-pink-50'
     }
   ];
+
+  // Get recent forms (last 5, sorted by updatedAt)
+  const recentForms = forms
+    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+    .slice(0, 5);
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -127,13 +138,60 @@ function FormCreatorSection() {
       {/* Recent Forms */}
       <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 md:p-6 border border-gray-200/50">
         <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">Recent Forms</h3>
-        <div className="text-center py-6 md:py-8 text-gray-500">
-          <div className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-3 md:mb-4 p-3 rounded-xl bg-gray-100/50">
-            <FileText className="w-full h-full text-gray-400" />
+        {recentForms.length > 0 ? (
+          <div className="space-y-3">
+            {recentForms.map((form) => (
+              <div
+                key={form.id}
+                className="group bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-lg p-3 md:p-4 hover:bg-white/90 hover:shadow-md transition-all duration-200 cursor-pointer"
+                onClick={() => router.push(`/forms?id=${form.id}`)}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 rounded-lg bg-blue-100/50">
+                      <FileText className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm md:text-base font-medium text-gray-900 truncate">
+                        {form.name}
+                      </h4>
+                      {form.description && (
+                        <p className="text-xs md:text-sm text-gray-500 truncate mt-1">
+                          {form.description}
+                        </p>
+                      )}
+                      <div className="flex items-center space-x-2 mt-1">
+                        <Clock className="w-3 h-3 text-gray-400" />
+                        <span className="text-xs text-gray-500">
+                          {new Date(form.updatedAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <button
+                      className="p-1 rounded hover:bg-gray-100 transition-colors duration-200"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(`/forms?id=${form.id}`);
+                      }}
+                    >
+                      <Edit className="w-3 h-3 text-gray-500" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-          <p className="text-sm">No recent forms</p>
-          <p className="text-xs text-gray-400 mt-1">Create your first form to get started</p>
-        </div>
+        ) : (
+          <div className="text-center py-6 md:py-8 text-gray-500">
+            <div className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-3 md:mb-4 p-3 rounded-xl bg-gray-100/50">
+              <FileText className="w-full h-full text-gray-400" />
+            </div>
+            <p className="text-sm">No recent forms</p>
+            <p className="text-xs text-gray-400 mt-1">Create your first form to get started</p>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -141,6 +199,7 @@ function FormCreatorSection() {
 
 function WorkflowCreatorSection() {
   const router = useRouter();
+  const { workflows } = useWorkflowStore();
 
   const quickActions = [
     {
@@ -168,6 +227,11 @@ function WorkflowCreatorSection() {
       bgColor: 'from-purple-50 to-pink-50'
     }
   ];
+
+  // Get recent workflows (last 5, sorted by createdAt)
+  const recentWorkflows = workflows
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 5);
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -202,13 +266,67 @@ function WorkflowCreatorSection() {
       {/* Recent Workflows */}
       <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 md:p-6 border border-gray-200/50">
         <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">Recent Workflows</h3>
-        <div className="text-center py-6 md:py-8 text-gray-500">
-          <div className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-3 md:mb-4 p-3 rounded-xl bg-gray-100/50">
-            <GitBranch className="w-full h-full text-gray-400" />
+        {recentWorkflows.length > 0 ? (
+          <div className="space-y-3">
+            {recentWorkflows.map((workflow) => (
+              <div
+                key={workflow.id}
+                className="group bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-lg p-3 md:p-4 hover:bg-white/90 hover:shadow-md transition-all duration-200 cursor-pointer"
+                onClick={() => router.push(`/workflows?id=${workflow.id}`)}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 rounded-lg bg-green-100/50">
+                      <GitBranch className="w-4 h-4 text-green-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm md:text-base font-medium text-gray-900 truncate">
+                        {workflow.name}
+                      </h4>
+                      {workflow.description && (
+                        <p className="text-xs md:text-sm text-gray-500 truncate mt-1">
+                          {workflow.description}
+                        </p>
+                      )}
+                      <div className="flex items-center space-x-2 mt-1">
+                        <Clock className="w-3 h-3 text-gray-400" />
+                        <span className="text-xs text-gray-500">
+                          {new Date(workflow.createdAt).toLocaleDateString()}
+                        </span>
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          workflow.status === 'active' ? 'bg-green-100 text-green-700' :
+                          workflow.status === 'completed' ? 'bg-blue-100 text-blue-700' :
+                          'bg-gray-100 text-gray-700'
+                        }`}>
+                          {workflow.status}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <button
+                      className="p-1 rounded hover:bg-gray-100 transition-colors duration-200"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(`/workflows?id=${workflow.id}`);
+                      }}
+                    >
+                      <Edit className="w-3 h-3 text-gray-500" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-          <p className="text-sm">No recent workflows</p>
-          <p className="text-xs text-gray-400 mt-1">Create your first workflow to get started</p>
-        </div>
+        ) : (
+          <div className="text-center py-6 md:py-8 text-gray-500">
+            <div className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-3 md:mb-4 p-3 rounded-xl bg-gray-100/50">
+              <GitBranch className="w-full h-full text-gray-400" />
+            </div>
+            <p className="text-sm">No recent workflows</p>
+            <p className="text-xs text-gray-400 mt-1">Create your first workflow to get started</p>
+          </div>
+        )}
       </div>
     </div>
   );
