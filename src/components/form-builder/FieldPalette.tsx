@@ -11,6 +11,9 @@ const FIELD_TYPES: FieldType[] = [
   { type: 'file', label: 'File Upload', icon: '📎' },
   { type: 'radio', label: 'Radio Buttons', icon: '🔘' },
   { type: 'checkbox', label: 'Checkbox', icon: '☑️' },
+  { type: 'number', label: 'Number Input', icon: '🔢' },
+  { type: 'email', label: 'Email Input', icon: '📧' },
+  { type: 'multiselect', label: 'Multi-Select', icon: '🔄' },
 ];
 
 function DraggableFieldType({ fieldType }: { fieldType: FieldType }) {
