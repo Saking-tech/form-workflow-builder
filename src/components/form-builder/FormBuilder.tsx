@@ -22,15 +22,16 @@ import {
   useSortable
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Plus, GripVertical, Trash2, Settings, Edit2, X, Check, ChevronDown, ChevronRight } from 'lucide-react';
+import { Plus, GripVertical, Trash2, Settings, Edit2, X, Check, ChevronDown, ChevronRight, Save } from 'lucide-react';
 import { useDroppable } from '@dnd-kit/core';
 
 interface FormBuilderProps {
   form: Form;
   onFormChange: (form: Form) => void;
+  onSaveAsTemplate?: (templateName: string, templateDescription: string) => void;
 }
 
-export default function FormBuilder({ form, onFormChange }: FormBuilderProps) {
+export default function FormBuilder({ form, onFormChange, onSaveAsTemplate }: FormBuilderProps) {
   const { addSectionToForm, addFieldToSection, removeSectionFromForm, removeFieldFromSection } = useFormStore();
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [draggedField, setDraggedField] = useState<typeof FIELD_TYPES[0] | null>(null);
@@ -301,13 +302,24 @@ export default function FormBuilder({ form, onFormChange }: FormBuilderProps) {
                 <h2 className="text-xl font-semibold text-gray-900">Form Builder</h2>
                 <p className="text-sm text-gray-600">Build your form by adding sections and fields</p>
               </div>
-              <button
-                onClick={addNewSection}
-                className="flex items-center px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-500 text-white rounded-xl hover:bg-blue-800 hover:shadow-lg transition-all"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Section
-              </button>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={addNewSection}
+                  className="flex items-center px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-500 text-white rounded-xl hover:bg-blue-800 hover:shadow-lg transition-all"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Section
+                </button>
+                {onSaveAsTemplate && (
+                  <button
+                    onClick={() => onSaveAsTemplate('New Template', 'A new form template')}
+                    className="flex items-center px-3 py-2 bg-green-600 text-white rounded-xl hover:bg-green-800 hover:shadow-lg transition-all"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    Save as Template
+                  </button>
+                )}
+              </div>
             </div>
 
             <SortableContext

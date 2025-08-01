@@ -89,14 +89,6 @@ function FormCreatorSection() {
       action: () => router.push('/forms'),
       color: 'from-emerald-500 to-teal-600',
       bgColor: 'from-emerald-50 to-teal-50'
-    },
-    {
-      title: 'Import Form',
-      description: 'Import from JSON or other formats',
-      icon: Settings,
-      action: () => router.push('/forms'),
-      color: 'from-purple-500 to-pink-600',
-      bgColor: 'from-purple-50 to-pink-50'
     }
   ];
 
@@ -217,14 +209,6 @@ function WorkflowCreatorSection() {
       action: () => router.push('/workflows'),
       color: 'from-emerald-500 to-teal-600',
       bgColor: 'from-emerald-50 to-teal-50'
-    },
-    {
-      title: 'Import Workflow',
-      description: 'Import workflow from external sources',
-      icon: Settings,
-      action: () => router.push('/workflows'),
-      color: 'from-purple-500 to-pink-600',
-      bgColor: 'from-purple-50 to-pink-50'
     }
   ];
 

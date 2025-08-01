@@ -1,14 +1,18 @@
 import { create } from 'zustand';
-import { Workflow, WorkflowNode } from '@/types';
+import { Workflow, WorkflowNode, WorkflowTemplate } from '@/types';
+import { WORKFLOW_TEMPLATES } from '@/lib/workflowTemplates';
 import { persistStore } from '@/lib/persistStore';
 
 interface WorkflowStore {
   workflows: Workflow[];
   currentWorkflow: Workflow | null;
+  templates: WorkflowTemplate[];
   addWorkflow: (workflow: Workflow) => void;
   updateWorkflow: (id: string, updates: Partial<Workflow>) => void;
   deleteWorkflow: (id: string) => void;
   setCurrentWorkflow: (workflow: Workflow | null) => void;
+  createWorkflowFromTemplate: (templateId: string) => Workflow;
+  saveWorkflowAsTemplate: (workflowId: string, templateName: string, templateDescription: string) => void;
   addNodeToWorkflow: (workflowId: string, formId: string, position: { x: number; y: number }) => void;
   updateNodeInWorkflow: (workflowId: string, nodeId: string, updates: Partial<WorkflowNode>) => void;
   removeNodeFromWorkflow: (workflowId: string, nodeId: string) => void;
@@ -17,9 +21,10 @@ interface WorkflowStore {
 }
 
 export const useWorkflowStore = create<WorkflowStore>(
-  persistStore<WorkflowStore>('workflowStore', (set) => ({
+  persistStore<WorkflowStore>('workflowStore', (set, get) => ({
   workflows: [],
   currentWorkflow: null,
+  templates: WORKFLOW_TEMPLATES,
   
   addWorkflow: (workflow) => set((state) => ({
     workflows: [...state.workflows, workflow]
@@ -36,6 +41,51 @@ export const useWorkflowStore = create<WorkflowStore>(
   })),
   
   setCurrentWorkflow: (workflow) => set({ currentWorkflow: workflow }),
+  
+  createWorkflowFromTemplate: (templateId) => {
+    const template = WORKFLOW_TEMPLATES.find(t => t.id === templateId);
+    if (!template) {
+      throw new Error(`Template ${templateId} not found`);
+    }
+    
+    const newWorkflow: Workflow = {
+      id: `workflow_${Date.now()}`,
+      name: template.name,
+      description: template.description,
+      nodes: template.nodes.map(node => ({
+        ...node,
+        id: `node_${Date.now()}_${Math.random()}`
+      })),
+      connections: template.connections,
+      status: 'draft',
+      createdAt: new Date()
+    };
+    
+    get().addWorkflow(newWorkflow);
+    return newWorkflow;
+  },
+  
+  saveWorkflowAsTemplate: (workflowId, templateName, templateDescription) => {
+    const workflow = get().workflows.find(w => w.id === workflowId);
+    if (!workflow) {
+      throw new Error(`Workflow with ID ${workflowId} not found`);
+    }
+
+    const newTemplate: WorkflowTemplate = {
+      id: `template_${Date.now()}`,
+      name: templateName,
+      description: templateDescription,
+      nodes: workflow.nodes.map(node => ({
+        ...node,
+        id: `node_${Date.now()}_${Math.random()}`
+      })),
+      connections: workflow.connections
+    };
+
+    set((state) => ({
+      templates: [...state.templates, newTemplate]
+    }));
+  },
   
   addNodeToWorkflow: (workflowId, formId, position) => set((state) => ({
     workflows: state.workflows.map(workflow => 
