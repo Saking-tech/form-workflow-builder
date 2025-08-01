@@ -75,12 +75,4 @@ export const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
       { from: 'request-form', to: 'approval-form' }
     ]
   }
-];
-
-export interface WorkflowTemplate {
-  id: string;
-  name: string;
-  description: string;
-  nodes: WorkflowNode[];
-  connections: Array<{ from: string; to: string }>;
-} 
+]; 
