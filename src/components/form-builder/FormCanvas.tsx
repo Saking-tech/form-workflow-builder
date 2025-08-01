@@ -89,7 +89,7 @@ function FormFieldRenderer({ field, onUpdate, onDelete }: FormFieldRendererProps
           </label>
         </div>
 
-        {field.type === 'select' && (
+        {(field.type === 'select' || field.type === 'dropdown' || field.type === 'radio' || field.type === 'multiselect') && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Options (one per line)

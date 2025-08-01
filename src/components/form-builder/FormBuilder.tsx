@@ -28,10 +28,9 @@ import { useDroppable } from '@dnd-kit/core';
 interface FormBuilderProps {
   form: Form;
   onFormChange: (form: Form) => void;
-  onSaveAsTemplate?: (templateName: string, templateDescription: string) => void;
 }
 
-export default function FormBuilder({ form, onFormChange, onSaveAsTemplate }: FormBuilderProps) {
+export default function FormBuilder({ form, onFormChange }: FormBuilderProps) {
   const { addSectionToForm, addFieldToSection, removeSectionFromForm, removeFieldFromSection } = useFormStore();
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [draggedField, setDraggedField] = useState<typeof FIELD_TYPES[0] | null>(null);
@@ -310,15 +309,7 @@ export default function FormBuilder({ form, onFormChange, onSaveAsTemplate }: Fo
                   <Plus className="w-4 h-4 mr-2" />
                   Add Section
                 </button>
-                {onSaveAsTemplate && (
-                  <button
-                    onClick={() => onSaveAsTemplate('New Template', 'A new form template')}
-                    className="flex items-center px-3 py-2 bg-green-600 text-white rounded-xl hover:bg-green-800 hover:shadow-lg transition-all"
-                  >
-                    <Save className="w-4 h-4 mr-2" />
-                    Save as Template
-                  </button>
-                )}
+
               </div>
             </div>
 

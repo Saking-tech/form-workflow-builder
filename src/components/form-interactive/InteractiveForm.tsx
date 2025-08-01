@@ -46,10 +46,14 @@ export default function InteractiveForm({ form, onSubmit, className = '', initia
         const value = formData[field.id];
 
         // Check required fields
-        if (field.required && (!value || (Array.isArray(value) && value.length === 0))) {
-          newErrors[field.id] = `${field.label} is required`;
-          isValid = false;
-          return;
+        if (field.required) {
+          if (!value || 
+              (typeof value === 'string' && value.trim() === '') ||
+              (Array.isArray(value) && value.length === 0)) {
+            newErrors[field.id] = `${field.label} is required`;
+            isValid = false;
+            return;
+          }
         }
 
         // Email validation
@@ -295,6 +299,45 @@ export default function InteractiveForm({ form, onSubmit, className = '', initia
                   error ? 'border-red-500' : 'border-gray-300'
                 }`}
               />
+              {error && (
+                <div className="flex items-center mt-1 text-red-600 text-sm">
+                  <AlertCircle className="w-4 h-4 mr-1" />
+                  {error}
+                </div>
+              )}
+            </div>
+          );
+
+        case 'multiselect':
+          return (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                {field.label}
+                {field.required && <span className="text-red-500 ml-1">*</span>}
+              </label>
+              <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-300 rounded-md p-2">
+                {field.options?.map((option, index) => (
+                  <div key={index} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id={`${field.id}-${index}`}
+                      value={option.value}
+                      checked={Array.isArray(value) && value.includes(option.value)}
+                      onChange={(e) => {
+                        const currentValues = Array.isArray(value) ? value : [];
+                        const newValues = e.target.checked
+                          ? [...currentValues, option.value]
+                          : currentValues.filter(v => v !== option.value);
+                        handleFieldChange(field.id, newValues, field);
+                      }}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor={`${field.id}-${index}`} className="ml-2 block text-sm text-gray-700">
+                      {option.label}
+                    </label>
+                  </div>
+                ))}
+              </div>
               {error && (
                 <div className="flex items-center mt-1 text-red-600 text-sm">
                   <AlertCircle className="w-4 h-4 mr-1" />
