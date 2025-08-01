@@ -39,6 +39,7 @@ interface WorkflowDesignerProps {
   workflow?: Workflow;
   onSave?: (workflow: Workflow) => void;
   onSaveAsTemplate?: (templateName: string, templateDescription: string) => void;
+  onWorkflowDataChange?: (workflow: Workflow) => void;
 }
 
 export default function WorkflowDesigner({ workflow, onSave, onSaveAsTemplate }: WorkflowDesignerProps) {

@@ -18,7 +18,7 @@ import {
 import { WORKFLOW_TEMPLATES } from '@/lib/workflowTemplates';
 
 export default function WorkflowsPage() {
-  const { workflows, addWorkflow, updateWorkflow, deleteWorkflow, createWorkflowFromTemplate, saveWorkflowAsTemplate } = useWorkflowStore();
+  const { workflows, addWorkflow, updateWorkflow, deleteWorkflow, createWorkflowFromTemplate, saveWorkflowAsTemplate, saveWorkflowObjectAsTemplate } = useWorkflowStore();
   const { forms } = useFormStore();
   const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(null);
   const [showDesigner, setShowDesigner] = useState(false);
@@ -30,6 +30,7 @@ export default function WorkflowsPage() {
   const [newWorkflowName, setNewWorkflowName] = useState('');
   const [templateName, setTemplateName] = useState('');
   const [templateDescription, setTemplateDescription] = useState('');
+  const [currentWorkflowData, setCurrentWorkflowData] = useState<Workflow | null>(null);
 
   const handleCreateWorkflow = () => {
     if (!newWorkflowName.trim()) return;
@@ -65,11 +66,12 @@ export default function WorkflowsPage() {
   };
 
   const handleConfirmSaveAsTemplate = () => {
-    if (selectedWorkflow && templateName) {
-      saveWorkflowAsTemplate(selectedWorkflow.id, templateName, templateDescription);
+    if (currentWorkflowData && templateName) {
+      saveWorkflowObjectAsTemplate(currentWorkflowData, templateName, templateDescription);
       setShowSaveTemplateModal(false);
       setTemplateName('');
       setTemplateDescription('');
+      setCurrentWorkflowData(null);
       alert('Workflow saved as template successfully!');
     }
   };
